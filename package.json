@@ -10,6 +10,9 @@
     "db:migrate": "node scripts/migrate.js",
     "ingest:backfill": "node scripts/ingest-backfill.js",
     "ingest:daily": "node scripts/ingest-daily.js",
+    "analyze:patterns": "node scripts/analyze-patterns.js",
+    "generate": "node scripts/generate.js",
+    "backtest": "node scripts/backtest.js",
     "spike:pcso": "node scripts/spike-pcso.js",
     "spike:pcso-search": "node scripts/spike-pcso-search.js"
   },

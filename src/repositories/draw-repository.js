@@ -166,9 +166,38 @@ async function loadDrawCoverage(db) {
   }));
 }
 
+/**
+ * All past draws of one game, oldest first, for statistics and the backtest.
+ * @returns {Promise<Array<{ drawDate: string, numbers: number[] }>>}
+ */
+async function loadDrawsForGame(db, gameId) {
+  const [rows] = await db.query(
+    'SELECT draw_date, n1, n2, n3, n4, n5, n6 FROM draws WHERE game_id = ? ORDER BY draw_date',
+    [gameId],
+  );
+  return rows.map((row) => ({
+    drawDate: row.draw_date,
+    numbers: [row.n1, row.n2, row.n3, row.n4, row.n5, row.n6],
+  }));
+}
+
+/**
+ * Every past winning combination of one game as "1-2-3-4-5-6" strings, for the "no repeats" filter.
+ * @returns {Promise<Set<string>>}
+ */
+async function loadPastWinnerKeys(db, gameId) {
+  const [rows] = await db.query(
+    "SELECT CONCAT_WS('-', n1, n2, n3, n4, n5, n6) AS combination FROM draws WHERE game_id = ?",
+    [gameId],
+  );
+  return new Set(rows.map((row) => row.combination));
+}
+
 module.exports = {
   saveDraws,
   loadStoredDrawKeys,
   loadDrawCoverage,
+  loadDrawsForGame,
+  loadPastWinnerKeys,
   drawKey,
 };
