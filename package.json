@@ -13,6 +13,7 @@
     "analyze:patterns": "node scripts/analyze-patterns.js",
     "generate": "node scripts/generate.js",
     "backtest": "node scripts/backtest.js",
+    "stats": "node scripts/stats.js",
     "spike:pcso": "node scripts/spike-pcso.js",
     "spike:pcso-search": "node scripts/spike-pcso-search.js"
   },

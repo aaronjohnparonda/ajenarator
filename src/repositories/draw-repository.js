@@ -193,11 +193,31 @@ async function loadPastWinnerKeys(db, gameId) {
   return new Set(rows.map((row) => row.combination));
 }
 
+/**
+ * The most recent draws of one game, newest first, with jackpot and winners.
+ * @returns {Promise<Array<{ drawDate, numbers, drawOrder, jackpotAmount, winners }>>}
+ */
+async function loadLatestDraws(db, gameId, limit) {
+  const [rows] = await db.query(
+    `SELECT draw_date, n1, n2, n3, n4, n5, n6, draw_order, jackpot_amount, winners
+     FROM draws WHERE game_id = ? ORDER BY draw_date DESC LIMIT ?`,
+    [gameId, limit],
+  );
+  return rows.map((row) => ({
+    drawDate: row.draw_date,
+    numbers: [row.n1, row.n2, row.n3, row.n4, row.n5, row.n6],
+    drawOrder: row.draw_order,
+    jackpotAmount: row.jackpot_amount,
+    winners: row.winners,
+  }));
+}
+
 module.exports = {
   saveDraws,
   loadStoredDrawKeys,
   loadDrawCoverage,
   loadDrawsForGame,
   loadPastWinnerKeys,
+  loadLatestDraws,
   drawKey,
 };
