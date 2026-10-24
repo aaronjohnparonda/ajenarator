@@ -5,12 +5,28 @@
  * Does nothing (no PCSO request) when every result due so far is already saved.
  *
  * Usage:
- *   npm run ingest:daily
+ *   npm run ingest:daily               normal check (what the nightly schedule runs)
+ *   npm run ingest:daily -- --force    always contact PCSO, even if nothing is due (for testing)
  *
- * Later, a scheduled job will run this automatically on draw nights.
+ * The force option can also be turned on with the environment variable INGEST_FORCE_CHECK=true
+ * (used by the "Run workflow" button on GitHub). It never duplicates or overwrites data.
  */
 
+function parseArguments(argv) {
+  const options = { force: process.env.INGEST_FORCE_CHECK === 'true' };
+  for (const argument of argv) {
+    if (argument === '--force') {
+      options.force = true;
+    } else {
+      throw new Error(`Unknown option "${argument}". The only option is --force.`);
+    }
+  }
+  return options;
+}
+
 async function main() {
+  const options = parseArguments(process.argv.slice(2));
+
   // Required inside main so configuration errors are printed cleanly below.
   const { pool, closePool } = require('../src/db/pool');
   const { createPcsoClient } = require('../src/fetcher/pcso-client');
@@ -19,6 +35,9 @@ async function main() {
   const { formatIngestSummary } = require('../src/ingest/format-summary');
 
   const triggerSource = process.env.GITHUB_ACTIONS === 'true' ? 'github_actions' : 'cli';
+  if (options.force) {
+    console.log('Force check: PCSO will be contacted even if nothing is due.');
+  }
 
   try {
     const result = await runIngest({
@@ -26,7 +45,7 @@ async function main() {
       client: createPcsoClient(),
       runType: 'daily',
       triggerSource,
-      planner: createDailyPlanner(),
+      planner: createDailyPlanner({ alwaysSearch: options.force }),
       log: (message) => console.log(message),
     });
     console.log(formatIngestSummary('AJenarator: daily check finished', result));

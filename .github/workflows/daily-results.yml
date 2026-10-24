@@ -1,0 +1,64 @@
+# AJenarator - nightly PCSO results check.
+#
+# Runs `npm run ingest:daily` on GitHub's servers, connecting directly to the Aiven database.
+# All 6-number games are drawn at 9:00 PM Philippine time (PHT = UTC+8) and PCSO posts
+# results from about 10:00 PM, so checks start at 10:10 PM PHT.
+#
+# Efficient by design: once tonight's results are saved, later runs find nothing due and
+# finish without contacting PCSO. Each run also re-checks the last 3 days, so a skipped or
+# delayed run fixes itself on the next one.
+#
+# Database settings come from encrypted repository secrets (Settings -> Secrets and variables -> Actions):
+#   DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_CA_CERT (full text of the Aiven CA certificate)
+
+name: Nightly PCSO results check
+
+on:
+  schedule:
+    # Cron times are UTC. 14:10 UTC = 10:10 PM PHT.
+    - cron: '10,40 14,15 * * *' # 10:10, 10:40, 11:10, 11:40 PM PHT, every night
+    - cron: '10 22 * * *'       # 6:10 AM PHT next morning: catch results posted late
+  workflow_dispatch: # adds a "Run workflow" button for manual runs
+    inputs:
+      force_check:
+        description: 'Contact PCSO even if nothing is due (for testing)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Never let two checks overlap (the database lock also guards this).
+concurrency:
+  group: pcso-results-check
+  cancel-in-progress: false
+
+jobs:
+  check-results:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Check PCSO for new results
+        run: npm run ingest:daily
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_CA_CERT: ${{ secrets.DB_CA_CERT }}
+          # Empty on scheduled runs (= normal check); true only when ticked on a manual run.
+          INGEST_FORCE_CHECK: ${{ inputs.force_check }}

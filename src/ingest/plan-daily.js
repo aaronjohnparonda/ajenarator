@@ -8,6 +8,9 @@
  * results are in, the remaining scheduled checks cost zero requests.
  *
  * Re-checking a few days back makes a missed run fix itself on the next one.
+ *
+ * alwaysSearch: contact PCSO even when nothing is due. Used for manual test runs, e.g. to
+ * confirm PCSO answers requests from GitHub's servers. Still never duplicates or overwrites data.
  */
 
 const { loadStoredDrawKeys, drawKey } = require('../repositories/draw-repository');
@@ -15,7 +18,7 @@ const { addDays, eachDate, isoWeekday } = require('../utils/ph-time');
 
 const DEFAULT_LOOKBACK_DAYS = 3;
 
-function createDailyPlanner({ lookbackDays = DEFAULT_LOOKBACK_DAYS } = {}) {
+function createDailyPlanner({ lookbackDays = DEFAULT_LOOKBACK_DAYS, alwaysSearch = false } = {}) {
   return async function planDaily({ db, games, today, timeNow }) {
     const startDate = addDays(today, -lookbackDays);
     const expectedScopes = [{ gameIds: games.map((game) => game.id), startDate, endDate: today }];
@@ -33,7 +36,7 @@ function createDailyPlanner({ lookbackDays = DEFAULT_LOOKBACK_DAYS } = {}) {
       }
     }
 
-    if (outstanding.length === 0) {
+    if (outstanding.length === 0 && !alwaysSearch) {
       return {
         searches: [],
         expectedScopes,
