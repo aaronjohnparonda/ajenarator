@@ -1,0 +1,752 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" /><meta property="og:title" content="Philippine Charity Sweepstakes Office" /><meta name="description" /><meta name="author" content="RemarPC" /><title>
+	Philippine Charity Sweepstakes Office
+</title><link rel="icon" href="/pcsofiles/images/pcsoicon128x128.png" /><link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.1.1/css/all.css" />
+
+    <!-- Bootstrap and JQuery -->
+    <link href="/components/bootstrap/bootstrap-3.3.7(2).min.css" rel="stylesheet" />
+    <script src="/components/jquery/jquery-3.5.0.min.js" type="text/javascript"></script>
+    <script src="/components/jquery/jquery-3.2.1.min.js" type="text/javascript"></script>
+    <script src="/components/bootstrap/bootstrap-3.3.7(2).min.js" type="text/javascript"></script>
+    <script src="/components/dataTables/dataTables.jquery-1.10.16.min.js" type="text/javascript"></script>
+    <script src="/components/dataTables/dataTables.bootstrap-1.10.16.min.js" type="text/javascript"></script>
+    <script src="/components/jquery/jquery.magnifier.js" type="text/javascript"></script>
+
+    <!-- Custom CSS and javascript -->
+    <link id="csscustom" href="/css/custom.css?v=202540" rel="stylesheet" /><link id="csscotejosearch" href="/css/cotejo-search.css?v=2024013" rel="stylesheet" /><link id="cssbanner" href="/css/banner.css?v=2023011" rel="stylesheet" /><link id="csslottoresult" href="/css/lotto-results.css?v=2023011" rel="stylesheet" /><link href="/css/lottomatikstyles.css?v=2024011" rel="stylesheet" />
+
+    <script id="jsfunctions" src="/js/functions.js?v=2023003"></script>
+    <script id="jscarousels" src="/js/carousels.js?v=2023004"></script>
+    <script id="jspcso" src="/js/pcso.js?v=2021002"></script>
+    <script id="jspcsoactivities" src="/js/pcsoactivities.js?v=2025028"></script>
+    <script id="jspcsoorgdir" src="/js/pcsoorgdir.js?v=2023111"></script>
+    <script id="jspcsodata" src="/js/pcsodata.js?v=2025987"></script>
+    <script id="jspcsodatainfographics" src="/js/pcsodatainfographics.js?v=202411822"></script>
+    <script id="jspcsodatabidding" src="/js/pcsodatabidding.js?v=20251219"></script>
+
+     
+
+    <!-- Pre-loader -->
+    <style>
+        .no-js #loader {display: none;}
+        .js #loader {display: block; position: absolute; left: 100px; top: 0;}
+        .pre-con {position: fixed; left: 0px; top: 0px; width: 100%; height: 100%; z-index: 9999; background: url(/pcsofiles/images/PreloaderPCSO.gif) center no-repeat;}
+    </style>
+ 
+  
+    <script src="/components/jquery/jquery-1.12.4.min.js" type="text/javascript"></script>
+    <script>
+        // Wait for window load
+        // Animate loader off screen
+        $(window).load(function () { $(".pre-con").fadeOut("slow"); });
+    </script>
+
+    <script>
+        $('body').on('hide.bs.modal', '.modal', function () { $('video').trigger('pause'); });
+    </script>
+
+
+    
+</head>
+<body>
+    
+    <div class="pre-con"></div>
+    <form method="post" action="./SearchLottoResult.aspx" id="mainform">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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" />
+
+
+<script src="/ScriptResource.axd?d=NJmAwtEo3Ipnlaxl6CMhvvTVWu-QdAOEhva9f3-kdRpyQCn09XPEHmB_k3t4HaY_dNnNUOD8AhulgqhWv_42qjonEIZSO6wSDq4z3IsJvyEjGoxMtqXH-uYoMxVnZ-_O6g0jfNRGMfw97oaA1yNR0xyTwg8gRfAHxb1JdIwZ-7g1&amp;t=ffffffffa1bf0f7b" type="text/javascript"></script>
+<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="2DB88CA6" />
+<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="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" />
+        
+        <!-- Navigation bar -->
+        <div class="navbar navbar-default bg-dark navbar-fixed-top" role="navigation">
+            
+<div class="container container-navbar">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="http://www.gov.ph/">
+            <img src="/pcsofiles/images/philseal32x35.png" />
+        </a>
+        <a class="navbar-brand" href="/">
+            <img src="/pcsofiles/images/house35x35.png" />
+        </a>
+    </div>
+    <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+            <li>&nbsp;</li>
+            <li>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">About <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                    <li><a href="/About/About.aspx">About PCSO</a></li>
+                    <li><a href="/About/History.aspx">History</a></li>
+                    <li><a href="/About/Hymn.aspx">PCSO Hymn</a></li>
+                    <li><a href="/About/VisionMission.aspx">Vision and Mission</a></li>
+                    <li><a href="/About/Prayer.aspx">PCSO Prayer</a></li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Mandate <b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/About/Mandate/PCSOCharter.aspx">PCSO Charter</a></li>
+                            <li><a href="/About/Mandate/MandatoryContributions.aspx">Mandatory Contributions</a></li>
+                            <li><a href="/About/Mandate/RevenueAllocation.aspx">Revenue Allocation</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Organization <b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/About/Organization/OrgChart.aspx">PCSO Organizational Chart (Rationalized)</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=OBD">Office of the Board of Directors</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=OC">Office of the Chairperson</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=OBS">Office of the Board Secretary</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=OGM">Office of the General Manager</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=AS">Administrative Sector</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=BOS">Branch Operations Sector</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=CS">Charity Sector</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=GPDMS">Gaming, Product Development and Marketing Sector</a></li>
+                            <li><a href="/About/Organization/OrgChart.aspx?OrgChart=MSS">Management Services Sector</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">PCSO Directories<b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/About/Directories/MainOffice.aspx">Main Office</a></li>
+                            <li><a href="/About/Directories/MetroManilaExtensionOffices.aspx">Metro Manila Extension Office</a></li>
+                            <li><a href="/About/Directories/NorthernAndCentralLuzonDepartment.aspx">Northern and Central Luzon (NCL) Department</a></li>
+                            <li><a href="/About/Directories/SouthernTagalogAndBicolRegionDepartment.aspx">Southern Tagalog and Bicol Region (STBR) Department</a></li>
+                            <li><a href="/About/Directories/VisayasDepartment.aspx">Visayas Department</a></li>
+                            <li><a href="/About/Directories/MindanaoDepartment.aspx">Mindanao Department</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/About/Affiliations.aspx">Affiliations</a></li>
+                    <li><a href="/About/Careers.aspx">Careers</a></li>
+                    <li><a href="/About/PressRelease.aspx">Press Release Archive</a></li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Privacy Policy<b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/About/PrivacyPolicy/PrivacyNotice.aspx">Privacy Notice</a></li>
+                            
+                            <li><a href="/About/PrivacyPolicy/DataPrivacyMAPOnlineApplication.aspx">Data Privacy on MAP Online Application</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/About/copyrights.aspx">Copyrights</a></li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Corporate Social Responsibility<b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Corporate Social Responsibility Statement<b class="caret" style="float: right"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a target="_blank" href="/pcsofiles/CGS/YearEnd Report pp. 28-30.pdf">2023 Year End Report, pp. 28-30</a></li>
+                                    <li><a target="_blank" href="/pcsofiles/CGS/Manual of Corporate Governance 2016 p11.pdf">Manual of Corporate Governance 2016</a></li>
+                                    <li><a target="_blank" href="/pcsofiles/CGS/ApprovedGuidlines Corporate Social Responsibility.pdf">Approved Guidlines Corporate Social Responsibility</a></li>
+                                    <li><a target="_blank" href="/pcsofiles/About/Corporate Social Responsibility Statement 20250228.pdf">Corporate Social Responsibility Statement</a></li>
+                                </ul>
+                            </li>
+							
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Programs and Services <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">CAD Programs and Services<b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/ProgramsAndServices/CAD/MedicalAccessProgram.aspx">Medical Assistance Program (MAP)</a></li>
+                            <li><a href="/ProgramsAndServices/CAD/IPP.aspx">Institutional Partnership Program (IPP)</a></li>
+                            <li><a href="/ProgramsAndServices/CAD/MTVDonationProgram.aspx">Medical Transport Vehicle (MTV) Donation Program</a></li>
+                            
+                            <li><a href="/ProgramsAndServices/CAD/MedicalEquipmentDonationProgram.aspx">Medical Equipment Donation Program</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">MSD Programs and Services<b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/ProgramsAndServices/MSD/AuxiliaryAmbulanceService.aspx">Patient Transport Service</a></li>
+                            <li><a href="/ProgramsAndServices/MSD/MedicalAndDentalMission.aspx">Medical and Dental Mission Program</a></li>
+                            <li><a href="/ProgramsAndServices/MSD/MedicineDonationProgramInKind.aspx">Medicine Donation Program</a></li>
+                            <li><a href="/ProgramsAndServices/MSD/OutPatientServicesProgram.aspx">Out Patient Services Program</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/ProgramsAndServices/MandatoryContributions.aspx">Mandatory Contributions</a></li>
+					<li><a href="/ProgramsAndServices/CorporateSocialResponsibility.aspx">Corporate Social Responsibility</a></li>                      
+                </ul>
+            </li>
+            <li>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Games <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                    <li><a href="/Games/ResponsibleGaming.aspx" title="RG">Responsible Gaming</a></li>
+					<li><a href="https://sukilotto.pcso.gov.ph/" title="Go to Suki Lotto Official Website">Suki Lotto</a></li>
+                    <li><a href="/Games/LottoMatik.aspx">LottoMatik</a></li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Lotto Games <b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/Games/Lotto/UltraLotto658.aspx">Ultra Lotto 6/58</a></li>
+                            <li><a href="/Games/Lotto/GrandLotto655.aspx">Grand Lotto 6/55</a></li>
+                            <li><a href="/Games/Lotto/SuperLotto649.aspx">Super Lotto 6/49</a></li>
+                            <li><a href="/Games/Lotto/MegaLotto645.aspx">Mega Lotto 6/45</a></li>
+                            <li><a href="/Games/Lotto/Lotto642.aspx">Lotto 6/42</a></li>
+                            <li><a href="/Games/Lotto/6D.aspx">6D Lotto</a></li>
+                            <li><a href="/Games/Lotto/4D.aspx">4D Lotto</a></li>
+                            <li><a href="/Games/Lotto/3D.aspx">3D Lotto</a></li>
+                            <li><a href="/Games/Lotto/2D.aspx">2D Lotto</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/Games/ScratchIt.aspx">Scratch it! KaskaSwerte</a></li>
+                    <li><a href="/Games/SmallTownLottery.aspx">Small Town Lottery</a></li>
+                    <li>
+                        <div class="dropdown-divider"></div>
+                    </li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Search Draw Results <b class="caret" style="float: right"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/SearchLottoResult.aspx">Lotto Draw Results by Date</a></li>
+                            <li><a href="/Cotejo/CotejoSearch.aspx">Lotto Draw Results by Cotejo</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="/Games/ScheduleOfDrawsAndHorseRaces.aspx">Lotto Draws and Horse Races</a></li>
+                    <li><a href="/LiveStreaming.aspx">Draw Livestreaming</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">E-Services<b class="caret"></b></a>
+                <ul id="listeservicesnavbar" class="dropdown-menu">
+                </ul>
+            </li>
+            <li>
+                <a href="https://intranet.pcso.gov.ph/"   target="_blank" >Intranet </a>
+            </li> 
+			 
+            <li><a href="/Corporate/Bidding.aspx">Procurement</a></li>
+            
+			<li><a target="_blank" href="https://whistleblowing.gcg.gov.ph/#/">Whistleblowing</a></li>            
+            <li><a href="/Downloads.aspx">Downloads</a></li>
+            <li><a href="/FAQs.aspx">FAQs</a></li>
+            <li><a href="/contact_us.aspx">Contact Us</a></li>
+        </ul>
+    </div>
+</div>
+<script>
+    function dispEServicesNavBar() {
+        var str = "";
+        eservices.forEach(function (item, index) {
+            if (item.dateremoved == "") {
+                str += "<li><a target=\"_blank\" href=\"" + item.link + "\">" + item.title + "</a></li>";
+            }
+        });
+        document.getElementById("listeservicesnavbar").innerHTML += str;
+    }
+    dispEServicesNavBar();
+</script>
+
+        </div>
+
+        <!-- Header -->
+        <div class="container">
+            <header>
+                
+<div id="header-col1">
+    <a href="/">
+        <img src="/pcsofiles/images/pcsoicon128x128.png" alt="PCSO Icon" title="PCSO" /></a>
+</div>
+<div id="header-col2">
+    <div id="header-col2-title1a">Republic of the Philippines</div>
+    <div id="header-col2-title1b">Office of the President</div>
+    <div id="header-col2-title2">Philippine Charity Sweepstakes Office</div>
+</div>
+<div id="header-col3">
+	<img src="/pcsofiles/images/bagongpilipinas-logo-128p.png" alt="Bagong Pilipinas" title="Bagong Pilipinas" />
+    <a href="/Corporate/Transparency.aspx" target="_blank">
+        <img src="/pcsofiles/images/transparency-seal-128p.png" alt="Transparency" title="Transparency" /></a>
+    <a href="/Corporate/CorporateGovernanceScorecard.aspx" target="_blank">
+        <img src="/pcsofiles/images/corporate-governance-seal-128p.png" alt="Corporate Governance" title="Corporate Governance" /></a>
+ <a href="https://whistleblowing.gcg.gov.ph/" target="_blank">
+        <img src="/pcsofiles/images/whistleblowing.png" alt="Corporate Governance" title="Whistleblowing" /></a>
+
+
+</div>
+
+            </header>
+        </div>
+        
+        <div class="minimum-height">
+            
+    <div class="container">
+        <div class="col-xs-9">
+            <article>
+                <h1 style="margin-bottom: 30px;">
+                    
+    Search Lotto Draw Result by Date
+
+                </h1>
+                
+    <div id="search-lotto">
+        <p class="instruction">
+            Instruction: Set the Start Date and End Date of Lotto Draw and select from the list of Lotto games below to view a complete list of current and past draw results:
+        </p>
+        <br />
+        <div class="row">
+            <div class="col-lg-2">
+                <label><b>Set Draw Date</b></label>
+            </div>
+            <div class="col-lg-5">
+                <label>From:</label>
+                <div class="form-inline">
+                    <select name="ctl00$ctl00$cphContainer$cpContent$ddlStartMonth" id="cphContainer_cpContent_ddlStartMonth" class="form-control">
+	<option selected="selected" value="January">January</option>
+	<option value="February">February</option>
+	<option value="March">March</option>
+	<option value="April">April</option>
+	<option value="May">May</option>
+	<option value="June">June</option>
+	<option value="July">July</option>
+	<option value="August">August</option>
+	<option value="September">September</option>
+	<option value="October">October</option>
+	<option value="November">November</option>
+	<option value="December">December</option>
+
+</select>
+                    <select name="ctl00$ctl00$cphContainer$cpContent$ddlStartDate" id="cphContainer_cpContent_ddlStartDate" class="form-control">
+	<option selected="selected" value="1">1</option>
+	<option value="2">2</option>
+	<option value="3">3</option>
+	<option value="4">4</option>
+	<option value="5">5</option>
+	<option value="6">6</option>
+	<option value="7">7</option>
+	<option value="8">8</option>
+	<option value="9">9</option>
+	<option value="10">10</option>
+	<option value="11">11</option>
+	<option value="12">12</option>
+	<option value="13">13</option>
+	<option value="14">14</option>
+	<option value="15">15</option>
+	<option value="16">16</option>
+	<option value="17">17</option>
+	<option value="18">18</option>
+	<option value="19">19</option>
+	<option value="20">20</option>
+	<option value="21">21</option>
+	<option value="22">22</option>
+	<option value="23">23</option>
+	<option value="24">24</option>
+	<option value="25">25</option>
+	<option value="26">26</option>
+	<option value="27">27</option>
+	<option value="28">28</option>
+	<option value="29">29</option>
+	<option value="30">30</option>
+	<option value="31">31</option>
+
+</select>
+                    <select name="ctl00$ctl00$cphContainer$cpContent$ddlStartYear" id="cphContainer_cpContent_ddlStartYear" class="form-control">
+	<option value="2026">2026</option>
+	<option value="2025">2025</option>
+	<option value="2024">2024</option>
+	<option value="2023">2023</option>
+	<option value="2022">2022</option>
+	<option value="2021">2021</option>
+	<option value="2020">2020</option>
+	<option value="2019">2019</option>
+	<option value="2018">2018</option>
+	<option value="2017">2017</option>
+	<option selected="selected" value="2016">2016</option>
+
+</select>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <label>To:</label>
+                <div class="form-inline">
+                    <select name="ctl00$ctl00$cphContainer$cpContent$ddlEndMonth" id="cphContainer_cpContent_ddlEndMonth" class="form-control">
+	<option selected="selected" value="January">January</option>
+	<option value="February">February</option>
+	<option value="March">March</option>
+	<option value="April">April</option>
+	<option value="May">May</option>
+	<option value="June">June</option>
+	<option value="July">July</option>
+	<option value="August">August</option>
+	<option value="September">September</option>
+	<option value="October">October</option>
+	<option value="November">November</option>
+	<option value="December">December</option>
+
+</select>
+                    <select name="ctl00$ctl00$cphContainer$cpContent$ddlEndDay" id="cphContainer_cpContent_ddlEndDay" class="form-control">
+	<option value="1">1</option>
+	<option value="2">2</option>
+	<option value="3">3</option>
+	<option value="4">4</option>
+	<option value="5">5</option>
+	<option value="6">6</option>
+	<option value="7">7</option>
+	<option value="8">8</option>
+	<option value="9">9</option>
+	<option selected="selected" value="10">10</option>
+	<option value="11">11</option>
+	<option value="12">12</option>
+	<option value="13">13</option>
+	<option value="14">14</option>
+	<option value="15">15</option>
+	<option value="16">16</option>
+	<option value="17">17</option>
+	<option value="18">18</option>
+	<option value="19">19</option>
+	<option value="20">20</option>
+	<option value="21">21</option>
+	<option value="22">22</option>
+	<option value="23">23</option>
+	<option value="24">24</option>
+	<option value="25">25</option>
+	<option value="26">26</option>
+	<option value="27">27</option>
+	<option value="28">28</option>
+	<option value="29">29</option>
+	<option value="30">30</option>
+	<option value="31">31</option>
+
+</select>
+                    <select name="ctl00$ctl00$cphContainer$cpContent$ddlEndYear" id="cphContainer_cpContent_ddlEndYear" class="form-control">
+	<option value="2026">2026</option>
+	<option value="2025">2025</option>
+	<option value="2024">2024</option>
+	<option value="2023">2023</option>
+	<option value="2022">2022</option>
+	<option value="2021">2021</option>
+	<option value="2020">2020</option>
+	<option value="2019">2019</option>
+	<option value="2018">2018</option>
+	<option value="2017">2017</option>
+	<option selected="selected" value="2016">2016</option>
+
+</select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2">
+                <b>Select Lotto Game</b>
+            </div>
+            <div class="col-lg-10">
+                <select name="ctl00$ctl00$cphContainer$cpContent$ddlSelectGame" id="cphContainer_cpContent_ddlSelectGame" class="form-control">
+	<option selected="selected" value="0">All Games</option>
+	<option value="18">Ultra Lotto 6/58</option>
+	<option value="17">Grand Lotto 6/55</option>
+	<option value="1">Super Lotto 6/49</option>
+	<option value="2">Mega Lotto 6/45</option>
+	<option value="13">Lotto 6/42</option>
+	<option value="5">6D Lotto</option>
+	<option value="6">4D Lotto</option>
+	<option value="8">3D Lotto 2PM</option>
+	<option value="9">3D Lotto 5PM</option>
+	<option value="10">3D Lotto 9PM</option>
+	<option value="15">2D Lotto 2PM</option>
+	<option value="16">2D Lotto 5PM</option>
+	<option value="11">2D Lotto 9PM</option>
+
+</select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2">
+                &nbsp;
+            </div>
+            <div class="col-lg-10">
+                <input type="submit" name="ctl00$ctl00$cphContainer$cpContent$btnSearch" value="Search Lotto" id="cphContainer_cpContent_btnSearch" class="form-control btn btn-primary" />
+                <br />
+                <br />
+            </div>
+        </div>
+        <div class="search-lotto-result-div">
+            <div class="error">
+                <span id="cphContainer_cpContent_lblError">Search Results</span>
+            </div>
+            <div>
+	<table class="Grid search-lotto-result-table" cellspacing="0" rules="all" border="1" id="cphContainer_cpContent_GridView1" height="126" width="712">
+		<tr>
+			<th align="center" valign="middle" scope="col">LOTTO GAME</th><th align="center" valign="middle" scope="col">COMBINATIONS</th><th align="center" valign="middle" scope="col">DRAW DATE</th><th align="center" valign="middle" scope="col">JACKPOT (PHP)</th><th align="center" valign="middle" scope="col">WINNERS</th>
+		</tr><tr>
+			<td valign="middle">Superlotto 6/49</td><td valign="middle">08-48-39-38-13-36</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">39,615,764.00</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">8-9-8</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">472</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">0-8-2</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">380</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">5-8-1</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">785</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">22-18</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">359</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">21-26</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">228</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">16-13</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">213</td>
+		</tr><tr class="alt">
+			<td valign="middle">Ultra Lotto 6/58</td><td valign="middle">23-54-31-05-32-03</td><td align="center" valign="middle">1/10/2016</td><td align="right" valign="middle">50,000,000.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">6D Lotto</td><td valign="middle">9-6-7-9-0-9</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">333,229.62</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">8-0-3</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">604</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">0-9-5</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">224</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">5-0-9</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">880</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">28-29</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">296</td>
+		</tr><tr class="alt">
+			<td valign="middle">Lotto 6/42</td><td valign="middle">07-21-31-26-03-12</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">28,686,296.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">10-18</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">249</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">28-07</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">126</td>
+		</tr><tr>
+			<td valign="middle">Grand Lotto 6/55</td><td valign="middle">24-21-26-05-47-33</td><td align="center" valign="middle">1/9/2016</td><td align="right" valign="middle">102,982,312.00</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">Megalotto 6/45</td><td valign="middle">37-21-39-34-19-41</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">15,914,992.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">4D Lotto</td><td valign="middle">6-5-3-4</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">69,631.00</td><td align="center" valign="middle">14</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">9-1-4</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">696</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">6-3-1</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">502</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">6-2-3</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">1092</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">05-11</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">696</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">03-10</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">236</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">03-04</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">231</td>
+		</tr><tr class="alt">
+			<td valign="middle">Ultra Lotto 6/58</td><td valign="middle">38-35-33-08-49-52</td><td align="center" valign="middle">1/8/2016</td><td align="right" valign="middle">50,000,000.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">Superlotto 6/49</td><td valign="middle">15-16-41-46-45-42</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">35,671,800.00</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">6D Lotto</td><td valign="middle">0-9-1-6-5-0</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">304,367.00</td><td align="center" valign="middle">1</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">9-9-7</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">217</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">3-4-1</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">178</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">0-6-7</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">169</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">19-11</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">312</td>
+		</tr><tr>
+			<td valign="middle">Lotto 6/42</td><td valign="middle">18-03-29-32-04-42</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">25,402,072.00</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">07-03</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">207</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">30-01</td><td align="center" valign="middle">1/7/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">232</td>
+		</tr><tr class="alt">
+			<td valign="middle">Megalotto 6/45</td><td valign="middle">18-16-17-42-40-33</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">12,466,680.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">4D Lotto</td><td valign="middle">1-8-7-4</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">22,178.00</td><td align="center" valign="middle">44</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">3-4-1</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">564</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">3-7-7</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">381</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">6-6-6</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">1168</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">17-22</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">621</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">24-30</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">121</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">06-27</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">262</td>
+		</tr><tr class="alt">
+			<td valign="middle">Grand Lotto 6/55</td><td valign="middle">50-20-31-01-40-14</td><td align="center" valign="middle">1/6/2016</td><td align="right" valign="middle">97,388,556.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">Superlotto 6/49</td><td valign="middle">27-16-30-23-29-06</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">32,008,476.00</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">6D Lotto</td><td valign="middle">4-5-6-0-2-4</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">254,367.42</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">0-3-2</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">876</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">0-8-6</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">419</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">2-0-8</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">1308</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">27-31</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">236</td>
+		</tr><tr>
+			<td valign="middle">Lotto 6/42</td><td valign="middle">40-03-02-11-14-28</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">22,290,288.00</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">19-20</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">228</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">08-12</td><td align="center" valign="middle">1/5/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">385</td>
+		</tr><tr class="alt">
+			<td valign="middle">Megalotto 6/45</td><td valign="middle">09-31-28-43-07-15</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">9,490,132.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">4D Lotto</td><td valign="middle">0-9-5-5</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">33,688.00</td><td align="center" valign="middle">20</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">5-4-4</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">477</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">0-9-9</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">703</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">2-2-0</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">1212</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">09-14</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">641</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">12-10</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">253</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">07-03</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">282</td>
+		</tr><tr class="alt">
+			<td valign="middle">Grand Lotto 6/55</td><td valign="middle">33-55-30-13-31-10</td><td align="center" valign="middle">1/4/2016</td><td align="right" valign="middle">92,185,708.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">Superlotto 6/49</td><td valign="middle">19-43-22-32-01-06</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">28,419,344.00</td><td align="center" valign="middle">0</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">0-0-9</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">324</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">4-5-4</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">361</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">2-7-1</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">574</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">20-05</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">349</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">14-01</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">204</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">04-15</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">246</td>
+		</tr><tr class="alt">
+			<td valign="middle">Ultra Lotto 6/58</td><td valign="middle">26-10-05-24-49-12</td><td align="center" valign="middle">1/3/2016</td><td align="right" valign="middle">50,000,000.00</td><td align="center" valign="middle">1</td>
+		</tr><tr>
+			<td valign="middle">6D Lotto</td><td valign="middle">9-2-4-4-5-2</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">517,643.00</td><td align="center" valign="middle">1</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 2PM</td><td valign="middle">2-1-9</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">1110</td>
+		</tr><tr>
+			<td valign="middle">3D Lotto 5PM</td><td valign="middle">5-9-3</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">299</td>
+		</tr><tr class="alt">
+			<td valign="middle">3D Lotto 9PM</td><td valign="middle">1-2-9</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">4,500.00</td><td align="center" valign="middle">1191</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 9PM</td><td valign="middle">26-14</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">74</td>
+		</tr><tr class="alt">
+			<td valign="middle">Lotto 6/42</td><td valign="middle">16-04-31-25-07-13</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">19,075,584.00</td><td align="center" valign="middle">0</td>
+		</tr><tr>
+			<td valign="middle">2D Lotto 2PM</td><td valign="middle">02-01</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">292</td>
+		</tr><tr class="alt">
+			<td valign="middle">2D Lotto 5PM</td><td valign="middle">19-29</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">4,000.00</td><td align="center" valign="middle">129</td>
+		</tr><tr>
+			<td valign="middle">Grand Lotto 6/55</td><td valign="middle">43-07-23-32-02-48</td><td align="center" valign="middle">1/2/2016</td><td align="right" valign="middle">87,539,344.00</td><td align="center" valign="middle">0</td>
+		</tr>
+	</table>
+</div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        parent.AdjustIframeHeight(document.getElementById("search-lotto").scrollHeight);
+    </script>
+
+            </article>
+        </div>
+        <div class="col-xs-3 border-left">
+                
+    <div class="sidebar-right">
+        <div class="widget">
+            <div class="widget-title">Today's National Draw</div>
+            <div class="widget-content">
+                <input type="hidden" name="ctl00$ctl00$cphContainer$cpRightSidebar$TodaysNationalDraw$hSuspensionFrom" id="cphContainer_cpRightSidebar_TodaysNationalDraw_hSuspensionFrom" value="2021/03/29" />
+<input type="hidden" name="ctl00$ctl00$cphContainer$cpRightSidebar$TodaysNationalDraw$hSuspensionTo" id="cphContainer_cpRightSidebar_TodaysNationalDraw_hSuspensionTo" value="2021/03/29" />
+<input type="hidden" name="ctl00$ctl00$cphContainer$cpRightSidebar$TodaysNationalDraw$hSuspensionTitle" id="cphContainer_cpRightSidebar_TodaysNationalDraw_hSuspensionTitle" value="Suspended pursuant to the directives under the ECQ" />
+<input type="hidden" name="ctl00$ctl00$cphContainer$cpRightSidebar$TodaysNationalDraw$hLentenFrom" id="cphContainer_cpRightSidebar_TodaysNationalDraw_hLentenFrom" value="2026/04/02" />
+<input type="hidden" name="ctl00$ctl00$cphContainer$cpRightSidebar$TodaysNationalDraw$hLentenTo" id="cphContainer_cpRightSidebar_TodaysNationalDraw_hLentenTo" value="2026/04/04" />
+<div class="item" id="NationalDraw">
+    <div id="cphContainer_cpRightSidebar_TodaysNationalDraw_pNationalDraw" class="TodayDraws">
+	<div id='gameslogo' class='col-md-12'><div class='col-md-6 col-sm-6 text-right p-0'><img src='/pcsofiles/images/games/655_200x137.png' title='655' /></div><div class='col-md-6 col-sm-6 text-right p-0'><img src='/pcsofiles/images/games/642_200x137.png' title='642' /></div></div><div class='col-md-12 text-center'><b>Sat, October 24, 2026<br />9:00 pm</b></div>
+</div>
+    <div class="text-center" style="padding:8px 0;">
+        <a id="cphContainer_cpRightSidebar_TodaysNationalDraw_lbLivestreaming" href="javascript:__doPostBack(&#39;ctl00$ctl00$cphContainer$cpRightSidebar$TodaysNationalDraw$lbLivestreaming&#39;,&#39;&#39;)">
+        <img src="/pcsofiles/images/livestreamingimage.png" class="livestreamingimg" />
+        </a>
+    </div>
+    <a class="btn btn-sm btn-primary btn-block drawsched" href="/Games/ScheduleOfDrawsAndHorseRaces.aspx">Schedule of Lotto Draws and Horse Races</a>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+        </div>
+        
+
+        <!-- Agency Footer -->
+        <footer class="py-5 bg-dark">
+            <div class="container container-footer">
+                
+<div class="footer-agency">
+    <div class="col-xs-2">
+        <div class="fa-logo">
+            <a style="display: block;" href="/Default.aspx"><img src="/pcsofiles/images/pcsoicon128x128.png" /></a>
+            <img style="display: block;" src="/pcsofiles/images/pcsogovph.png" />
+            <div>Copyright © 2017. All rights reserved.</div>
+            <a style="display: block;" target="_blank" href="/pcsofiles/Certifications/ISO_9001-2015_DQS_Certificate_50502367QM15_2025-01-15 (2).pdf">
+                <img id="pcso_iso_qr" src="/pcsofiles/Certifications/ISO_9001-2015_DQS_128p.png" /></a> 
+            <a style="display: block;" target="_blank" href="/pcsofiles/Certifications/NPC_Reg2026_PIC-000-209-2026.jpg">
+                <img id="pcso_dpodps" src="/pcsofiles/Certifications/NPC_Reg2026_PIC-000-209-2026_Seal_w128.png" /></a>
+        </div>
+    </div>
+    <div class="col-xs-3">
+        <h4>Quick Links</h4>
+        <div class="quicklinks">
+            <a href="/Corporate/Bidding.aspx" target="_blank"><img src="/pcsofiles/images/quick links/quick-bidding.png" /></a>
+            <a href="/Corporate/Newsletters.aspx" target="_blank"><img src="/pcsofiles/images/quick links/index-newsletters.png" /></a>
+            <a href="https://whistleblowing.gcg.gov.ph/" target="_blank"><img src="/pcsofiles/images/quick links/quick-gcgwhistleblowingportal.png" /></a>
+        </div>
+    </div>
+    <div class="col-xs-3">
+        <h4>&nbsp;</h4>
+        <div class="quicklinks">
+            <a href="/pcsofiles/downloads/IRR-PCSO-Whistle-Blowing-Policy.pdf" target="_blank"><img src="/pcsofiles/images/quick links/quick-irrpcsowhistleblowingpolicy.png" /></a>
+            <a href="/pcsofiles/transparency/09/FOI Manual 2025.pdf" target="_blank"><img src="/pcsofiles/images/quick links/quick-foimanual.png" /></a>
+            <a href="/Corporate/GenderAndDevelopment.aspx" target="_blank"><img src="/pcsofiles/images/quick links/quick-gadcorner.png" /></a>
+        </div>
+    </div>
+    <div class="col-xs-2">
+        <div class="fa-logo">
+            <h4>Affiliations</h4>
+            <div>
+                <a href="https://www.asiapacific-lotteries.com/full-members/" target="_blank"> 
+                    <img alt="APLA" src="/pcsofiles/images/Affiliation-APLA(3).png" style="width:100%; padding-bottom: 20px;" /></a><br />
+                <a href="http://www.world-lotteries.org/cms/index.php?option=com_content&view=article&id=3845&Itemid=100203&lang=en#2307" target="_blank">
+                    <img alt="WLA" src="/pcsofiles/images/Affiliation-WLA(3).png" style="width:100%; padding-bottom: 20px;" /></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-2">
+        <h4>Follow or Like Us</h4>
+        <div>
+            <a href="https://www.facebook.com/pcsoofficialsocialmedia/" target="_blank">
+                <img src="/pcsofiles/images/social media icons/fb.png" /></a>
+            <a href="https://www.youtube.com/channel/UCpOm2kv1upnIFoOT7rSp6hg/videos/" target="_blank">
+                <img src="/pcsofiles/images/social media icons/youtube.png" /></a>
+        </div>
+        <br />
+    </div>
+</div>
+
+            </div>
+        </footer>
+        <!-- Standard Footer -->
+        <div id="gwt-standard-footer"></div>
+        <script>
+            (function (d, s, id) {
+                var js, gjs = d.getElementById('gwt-standard-footer');
+                js = d.createElement(s); js.id = id;
+                js.src = "//gwhs.i.gov.ph/gwt-footer/footer.js";
+                gjs.parentNode.insertBefore(js, gjs);
+            }(document, 'script', 'gwt-footer-jsdk'));
+        </script>
+    </form>
+</body>
+</html>
