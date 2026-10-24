@@ -1,0 +1,20 @@
+{
+  "name": "ajenarator",
+  "version": "0.1.0",
+  "description": "AJenarator - PCSO 6-number lotto analytics and smart pick generator",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "db:check": "node scripts/db-check.js",
+    "db:migrate": "node scripts/migrate.js",
+    "spike:pcso": "node scripts/spike-pcso.js",
+    "spike:pcso-search": "node scripts/spike-pcso-search.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "mysql2": "^3.24.6"
+  }
+}
