@@ -193,23 +193,29 @@ async function loadPastWinnerKeys(db, gameId) {
   return new Set(rows.map((row) => row.combination));
 }
 
+const FULL_DRAW_COLUMNS = 'draw_date, n1, n2, n3, n4, n5, n6, draw_order, jackpot_amount, winners';
+
+/** One database row -> the draw shape the API returns. */
+function mapFullDrawRow(row) {
+  return {
+    drawDate: row.draw_date,
+    numbers: [row.n1, row.n2, row.n3, row.n4, row.n5, row.n6],
+    drawOrder: row.draw_order,
+    jackpotAmount: row.jackpot_amount,
+    winners: row.winners,
+  };
+}
+
 /**
  * The most recent draws of one game, newest first, with jackpot and winners.
  * @returns {Promise<Array<{ drawDate, numbers, drawOrder, jackpotAmount, winners }>>}
  */
 async function loadLatestDraws(db, gameId, limit) {
   const [rows] = await db.query(
-    `SELECT draw_date, n1, n2, n3, n4, n5, n6, draw_order, jackpot_amount, winners
-     FROM draws WHERE game_id = ? ORDER BY draw_date DESC LIMIT ?`,
+    `SELECT ${FULL_DRAW_COLUMNS} FROM draws WHERE game_id = ? ORDER BY draw_date DESC LIMIT ?`,
     [gameId, limit],
   );
-  return rows.map((row) => ({
-    drawDate: row.draw_date,
-    numbers: [row.n1, row.n2, row.n3, row.n4, row.n5, row.n6],
-    drawOrder: row.draw_order,
-    jackpotAmount: row.jackpot_amount,
-    winners: row.winners,
-  }));
+  return rows.map(mapFullDrawRow);
 }
 
 /**
@@ -223,13 +229,28 @@ async function loadLatestDrawPerGame(db) {
     JOIN (SELECT game_id, MAX(draw_date) AS latest_date FROM draws GROUP BY game_id) latest
       ON latest.game_id = d.game_id AND latest.latest_date = d.draw_date
   `);
-  return new Map(rows.map((row) => [row.game_id, {
-    drawDate: row.draw_date,
-    numbers: [row.n1, row.n2, row.n3, row.n4, row.n5, row.n6],
-    drawOrder: row.draw_order,
-    jackpotAmount: row.jackpot_amount,
-    winners: row.winners,
-  }]));
+  return new Map(rows.map((row) => [row.game_id, mapFullDrawRow(row)]));
+}
+
+/** Date of one game's most recent saved draw ("YYYY-MM-DD"), or null. */
+async function loadLatestDrawDate(db, gameId) {
+  const [[row]] = await db.query('SELECT MAX(draw_date) AS latest_date FROM draws WHERE game_id = ?', [gameId]);
+  return row.latest_date;
+}
+
+/**
+ * One page of a game's draws, newest first, optionally only on or before a date.
+ * @returns {Promise<{ total: number, draws: Array }>}
+ */
+async function loadDrawsPage(db, gameId, { limit, offset, toDate = null }) {
+  const where = toDate ? 'WHERE game_id = ? AND draw_date <= ?' : 'WHERE game_id = ?';
+  const params = toDate ? [gameId, toDate] : [gameId];
+  const [[countRow]] = await db.query(`SELECT COUNT(*) AS total FROM draws ${where}`, params);
+  const [rows] = await db.query(
+    `SELECT ${FULL_DRAW_COLUMNS} FROM draws ${where} ORDER BY draw_date DESC LIMIT ? OFFSET ?`,
+    [...params, limit, offset],
+  );
+  return { total: Number(countRow.total), draws: rows.map(mapFullDrawRow) };
 }
 
 module.exports = {
@@ -240,5 +261,7 @@ module.exports = {
   loadPastWinnerKeys,
   loadLatestDraws,
   loadLatestDrawPerGame,
+  loadLatestDrawDate,
+  loadDrawsPage,
   drawKey,
 };

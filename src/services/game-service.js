@@ -11,11 +11,15 @@
  */
 
 const { loadActiveGames } = require('../repositories/game-repository');
-const { loadLatestDrawPerGame, loadPastWinnerKeys } = require('../repositories/draw-repository');
+const {
+  loadLatestDrawPerGame, loadPastWinnerKeys, loadLatestDrawDate, loadDrawsForGame, loadDrawsPage,
+} = require('../repositories/draw-repository');
 const { resolveFilters } = require('../engine/filters');
 const { generateCombinations } = require('../engine/generator');
 const { estimateCoverage } = require('../engine/coverage');
 const { describeCombination } = require('../engine/patterns');
+const { computeStatistics } = require('../engine/statistics');
+const { nowInManila } = require('../utils/ph-time');
 
 const GAMES_CACHE_MS = 10 * 60 * 1000;
 const PAST_WINNERS_CACHE_MS = 10 * 60 * 1000;
@@ -43,6 +47,7 @@ function createGameService({ db, clock = () => Date.now() }) {
   let gamesCache = null;
   const pastWinnersCache = new Map();
   const coverageCache = new Map();
+  const statsCache = new Map();
 
   async function getGames() {
     if (gamesCache && gamesCache.expiresAt > clock()) {
@@ -120,7 +125,42 @@ function createGameService({ db, clock = () => Date.now() }) {
     };
   }
 
-  return { listGames, generate };
+  /**
+   * Statistics for one game. Cached until a new draw is saved or the Philippine date changes
+   * (one cheap MAX(draw_date) query decides), so a fresh result shows up immediately.
+   */
+  async function getStats(slug) {
+    const game = await findGame(slug);
+    const today = nowInManila(new Date(clock())).date;
+    const latestDrawDate = await loadLatestDrawDate(db, game.id);
+
+    const cached = statsCache.get(game.id);
+    if (cached && cached.latestDrawDate === latestDrawDate && cached.today === today) {
+      return cached.result;
+    }
+
+    const draws = await loadDrawsForGame(db, game.id);
+    const result = { gameCode: game.code, ...computeStatistics({ game, draws, today }) };
+    statsCache.set(game.id, { latestDrawDate, today, result });
+    return result;
+  }
+
+  /** One page of a game's draw history, newest first. */
+  async function listDraws(slug, { page, limit, toDate = null }) {
+    const game = await findGame(slug);
+    const { total, draws } = await loadDrawsPage(db, game.id, { limit, offset: (page - 1) * limit, toDate });
+    return {
+      gameCode: game.code,
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+      toDate,
+      draws,
+    };
+  }
+
+  return { listGames, generate, getStats, listDraws };
 }
 
 module.exports = { createGameService, GameNotFoundError, slugForCode };

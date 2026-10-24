@@ -1,0 +1,130 @@
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.2s ease, background-color 0.3s ease;
+}
+
+.status-card:hover {
+  border-color: var(--border);
+}
+
+.status-card:active {
+  transform: scale(0.985);
+}
+
+.status-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.status-card__titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.status-card__name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status-card__schedule {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-card__balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.status-card__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.status-card__jackpot {
+  font-weight: 700;
+  color: var(--gold-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.status-card__detail {
+  font-size: 13px;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-pill__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-pill--tonight,
+.status-pill--result {
+  background: var(--badge-gold-bg);
+  color: var(--badge-gold-text);
+}
+
+.status-pill--waiting {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+.status-pill--waiting .status-pill__dot {
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+.status-pill--upcoming .status-pill__dot {
+  display: none;
+}
+
+.status-pill--delayed {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-pill--waiting .status-pill__dot {
+    animation: none;
+  }
+}

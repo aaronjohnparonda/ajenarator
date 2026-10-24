@@ -62,6 +62,20 @@ export async function fetchGames() {
   return data.games;
 }
 
+/** Frequency, hot/cold, gaps and distributions for one game. */
+export async function fetchStats(gameCode) {
+  return request(`/games/${encodeURIComponent(slugForCode(gameCode))}/stats`);
+}
+
+/** One page of draw history, newest first. toDate ("YYYY-MM-DD") limits to draws on or before it. */
+export async function fetchDraws(gameCode, { page = 1, limit = 20, toDate = null } = {}) {
+  const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (toDate) {
+    query.set('to', toDate);
+  }
+  return request(`/games/${encodeURIComponent(slugForCode(gameCode))}/draws?${query}`);
+}
+
 /** @returns {Promise<{ gameCode, picks: Array<{numbers, pattern}>, coverageShare, filters }>} */
 export async function generatePicks({ gameCode, count, filters }) {
   return request(`/games/${encodeURIComponent(slugForCode(gameCode))}/generate`, {

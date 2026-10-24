@@ -124,6 +124,144 @@
     </div>
   </template>
 
+  <template id="tpl-skeleton">
+    <div class="skeleton-stack" aria-hidden="true">
+      <div class="skeleton skeleton--card"></div>
+      <div class="skeleton skeleton--card"></div>
+      <div class="skeleton skeleton--card"></div>
+    </div>
+  </template>
+
+  <template id="tpl-home">
+    <section class="screen screen--home" aria-labelledby="home-title">
+      <div class="section-heading">
+        <h1 class="section-heading__title" id="home-title">Today’s draws</h1>
+        <p class="section-heading__caption" data-ref="today"></p>
+      </div>
+      <div class="status-list" data-ref="list"></div>
+      <p class="fine-print">Results are checked automatically on draw nights from about 10 PM. Tap a game to generate picks for it.</p>
+    </section>
+  </template>
+
+  <template id="tpl-status-card">
+    <a class="status-card" href="#/generate">
+      <div class="status-card__top">
+        <div class="status-card__titles">
+          <span class="status-card__name" data-ref="name"></span>
+          <span class="status-card__schedule" data-ref="schedule"></span>
+        </div>
+        <span class="status-pill" data-ref="pill"><span class="status-pill__dot" aria-hidden="true"></span><span data-ref="pillLabel"></span></span>
+      </div>
+      <div class="status-card__balls" data-ref="balls"></div>
+      <div class="status-card__meta">
+        <span data-ref="lastMeta"></span>
+        <span class="status-card__jackpot" data-ref="jackpot"></span>
+      </div>
+      <span class="status-card__detail" data-ref="detail"></span>
+    </a>
+  </template>
+
+  <template id="tpl-stats">
+    <section class="screen screen--stats" aria-labelledby="stats-title">
+      <h1 class="sr-only" id="stats-title">Statistics</h1>
+      <div class="game-chips" role="group" aria-label="Choose a game" data-ref="chips"></div>
+      <div class="stats-body" data-ref="body"></div>
+    </section>
+  </template>
+
+  <template id="tpl-stats-content">
+    <div class="stats-content">
+      <div class="metric-row">
+        <div class="metric-card"><span class="metric-card__label">Draws saved</span><span class="metric-card__value" data-ref="totalDraws"></span><span class="metric-card__hint" data-ref="since"></span></div>
+        <div class="metric-card"><span class="metric-card__label">Past 3 years</span><span class="metric-card__value" data-ref="windowDraws"></span><span class="metric-card__hint">draws analyzed</span></div>
+        <div class="metric-card"><span class="metric-card__label">Average sum</span><span class="metric-card__value" data-ref="averageSum"></span><span class="metric-card__hint" data-ref="sumRange"></span></div>
+      </div>
+
+      <article class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">Hot and cold</h2>
+          <p class="panel__caption" data-ref="hotColdCaption"></p>
+        </div>
+        <div class="hot-cold">
+          <span class="hot-cold__label">Hot</span>
+          <div class="hot-cold__balls" data-ref="hot"></div>
+          <span class="hot-cold__label">Cold</span>
+          <div class="hot-cold__balls" data-ref="cold"></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">How often each number was drawn</h2>
+          <p class="panel__caption" data-ref="heatCaption"></p>
+        </div>
+        <div class="heatmap" data-ref="heatmap"></div>
+        <div class="heat-legend" aria-hidden="true"><span>Less</span><span class="heat-legend__bar"></span><span>More</span></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">Longest absent</h2>
+          <p class="panel__caption">Draws since each number last appeared, across the full history</p>
+        </div>
+        <div class="gap-list" data-ref="gaps"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">Patterns in winning numbers</h2>
+          <p class="panel__caption" data-ref="patternCaption"></p>
+        </div>
+        <h3 class="panel__subtitle">Odd and even</h3>
+        <div class="bar-list" data-ref="oddEven"></div>
+        <h3 class="panel__subtitle">Low and high</h3>
+        <div class="bar-list" data-ref="lowHigh"></div>
+        <p class="panel__note" data-ref="pairNote"></p>
+      </article>
+
+      <p class="notice">These figures describe past draws only. PCSO draws behave randomly, so a hot or long-absent number is no more likely to come up next.</p>
+    </div>
+  </template>
+
+  <template id="tpl-bar-row">
+    <div class="bar-row">
+      <span class="bar-row__label" data-ref="label"></span>
+      <span class="bar-row__track"><span class="bar-row__fill" data-ref="fill"></span></span>
+      <span class="bar-row__value" data-ref="value"></span>
+    </div>
+  </template>
+
+  <template id="tpl-results">
+    <section class="screen screen--results" aria-labelledby="results-title">
+      <h1 class="sr-only" id="results-title">Results</h1>
+      <div class="game-chips" role="group" aria-label="Choose a game" data-ref="chips"></div>
+      <form class="date-filter" data-ref="form">
+        <label class="date-filter__label" for="results-date">Show draws up to</label>
+        <div class="date-filter__controls">
+          <input class="date-filter__input" type="date" id="results-date" data-ref="date" min="2016-01-01">
+          <button class="secondary-button date-filter__clear" type="button" data-ref="clear">Latest</button>
+        </div>
+      </form>
+      <p class="results-summary" data-ref="summary" aria-live="polite"></p>
+      <div class="draw-list" data-ref="list"></div>
+      <button class="secondary-button load-more" type="button" data-ref="more">Load more</button>
+    </section>
+  </template>
+
+  <template id="tpl-draw-row">
+    <article class="draw-row">
+      <div class="draw-row__top">
+        <span class="draw-row__date" data-ref="date"></span>
+        <span class="draw-row__jackpot" data-ref="jackpot"></span>
+      </div>
+      <div class="draw-row__balls" data-ref="balls"></div>
+      <div class="draw-row__meta">
+        <span data-ref="winners"></span>
+        <span data-ref="order"></span>
+      </div>
+    </article>
+  </template>
+
   <template id="tpl-coming-soon">
     <section class="screen screen--placeholder">
       <div class="empty-state empty-state--large">

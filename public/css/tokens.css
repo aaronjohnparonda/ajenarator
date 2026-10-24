@@ -40,6 +40,9 @@
   --nav-active: #D4AF37;
 
   --focus-ring: #F2D676;
+  /* Heatmap runs from deep bronze to bright gold so every cell stays a gold tone */
+  --heat-low: #2E2716;
+  --heat-high: #F2D676;
   --toast-bg: #F5EFE0;
   --toast-text: #1B1F2E;
 }
@@ -79,6 +82,8 @@
   --nav-active: #7A5C0E;
 
   --focus-ring: #8A6A12;
+  --heat-low: #EFE6CD;
+  --heat-high: #C9A227;
   --toast-bg: #1B1F2E;
   --toast-text: #F5EFE0;
 }

@@ -7,6 +7,8 @@
  *
  *   GET  /api/v1/games                  games, schedules, default coverage, last draw
  *   POST /api/v1/games/:slug/generate   body { "count": 1-10, "filters": { ... }? }
+ *   GET  /api/v1/games/:slug/stats      frequency, hot/cold, gaps, distributions
+ *   GET  /api/v1/games/:slug/draws      ?page=1&limit=20&to=YYYY-MM-DD (all optional)
  */
 
 const express = require('express');
@@ -14,10 +16,27 @@ const { rateLimit } = require('express-rate-limit');
 const { GameNotFoundError } = require('../services/game-service');
 const { FilterValidationError } = require('../engine/filters');
 const { ImpossibleFiltersError, MAX_COUNT } = require('../engine/generator');
+const { isValidIsoDate } = require('../utils/ph-time');
 
 const ONE_MINUTE_MS = 60 * 1000;
 const READ_REQUESTS_PER_MINUTE = 120;
 const GENERATE_REQUESTS_PER_MINUTE = 30;
+const DRAWS_DEFAULT_LIMIT = 20;
+const DRAWS_MAX_LIMIT = 50;
+const DRAWS_MAX_PAGE = 1000;
+const WHOLE_NUMBER_PATTERN = /^\d{1,4}$/;
+
+/** Reads an optional whole-number query value; returns null when invalid. */
+function readWholeNumber(value, fallback, min, max) {
+  if (value === undefined) {
+    return fallback;
+  }
+  if (typeof value !== 'string' || !WHOLE_NUMBER_PATTERN.test(value)) {
+    return null;
+  }
+  const number = Number(value);
+  return number >= min && number <= max ? number : null;
+}
 
 function sendError(res, status, code, message, details) {
   const error = { code, message };
@@ -65,6 +84,32 @@ function createApiRouter({ gameService }) {
     }
 
     const result = await gameService.generate({ slug: req.params.slug, count: body.count, filters: body.filters });
+    return res.json({ success: true, data: result });
+  });
+
+  router.get('/games/:slug/stats', readLimiter, async (req, res) => {
+    const stats = await gameService.getStats(req.params.slug);
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, data: stats });
+  });
+
+  router.get('/games/:slug/draws', readLimiter, async (req, res) => {
+    const page = readWholeNumber(req.query.page, 1, 1, DRAWS_MAX_PAGE);
+    const limit = readWholeNumber(req.query.limit, DRAWS_DEFAULT_LIMIT, 1, DRAWS_MAX_LIMIT);
+    const toDate = req.query.to === undefined || req.query.to === '' ? null : req.query.to;
+
+    if (page === null) {
+      return sendError(res, 422, 'INVALID_PAGE', `page must be a whole number from 1 to ${DRAWS_MAX_PAGE}.`);
+    }
+    if (limit === null) {
+      return sendError(res, 422, 'INVALID_LIMIT', `limit must be a whole number from 1 to ${DRAWS_MAX_LIMIT}.`);
+    }
+    if (toDate !== null && (typeof toDate !== 'string' || !isValidIsoDate(toDate))) {
+      return sendError(res, 422, 'INVALID_DATE', 'to must be a real date in YYYY-MM-DD format.');
+    }
+
+    const result = await gameService.listDraws(req.params.slug, { page, limit, toDate });
+    res.set('Cache-Control', 'no-store');
     return res.json({ success: true, data: result });
   });
 

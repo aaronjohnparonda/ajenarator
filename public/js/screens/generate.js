@@ -10,6 +10,7 @@ import { cloneTemplate, createElement, prefersReducedMotion } from '../ui/dom.js
 import { countUp } from '../ui/count-up.js';
 import { showToast, announce } from '../ui/toast.js';
 import { readSetting, writeSetting } from '../core/storage.js';
+import { renderGameChips, rememberedGameCode } from '../ui/game-chips.js';
 import { playClick, playChime } from '../core/sound.js';
 import { vibrate } from '../core/haptics.js';
 import { nextDraw, drawDayLabel, formatDrawTime, formatCountdown } from '../lib/draw-schedule.js';
@@ -20,7 +21,6 @@ import {
 const COUNT_MIN = 1;
 const COUNT_MAX = 10;
 const COUNT_DEFAULT = 3;
-const DEFAULT_GAME = '6/58';
 
 const BALL_DROP_MS = 620; // matches the ball-drop animation in balls.css
 const LANDING_POINT = 0.55; // the moment in the drop when the ball touches down
@@ -46,6 +46,7 @@ export function mountGenerateScreen(root, { api }) {
     game: null,
     count: clampCount(readSetting('pickCount', COUNT_DEFAULT)),
     busy: false,
+    chips: null,
     countdownTimer: null,
     finishTimer: null,
   };
@@ -105,17 +106,8 @@ export function mountGenerateScreen(root, { api }) {
     refs.lastDrawMeta.textContent = `${formatDrawDate(draw.drawDate)} · ${formatWinners(draw.winners)}${rollsOver}`;
   }
 
-  function renderChips() {
-    const chips = state.games.map((game) => {
-      const chip = createElement('button', 'game-chip', game.code);
-      chip.type = 'button';
-      chip.dataset.code = game.code;
-      chip.setAttribute('aria-pressed', 'false');
-      chip.setAttribute('aria-label', game.name);
-      chip.addEventListener('click', () => selectGame(game.code));
-      return chip;
-    });
-    refs.chips.replaceChildren(...chips);
+  function renderChips(selectedCode) {
+    state.chips = renderGameChips(refs.chips, state.games, { selectedCode, onSelect: selectGame });
   }
 
   function selectGame(code) {
@@ -125,11 +117,7 @@ export function mountGenerateScreen(root, { api }) {
     const game = state.games.find((entry) => entry.code === code) || state.games[0];
     const changed = !state.game || state.game.code !== game.code;
     state.game = game;
-    writeSetting('game', game.code);
-
-    refs.chips.querySelectorAll('.game-chip').forEach((chip) => {
-      chip.setAttribute('aria-pressed', String(chip.dataset.code === game.code));
-    });
+    state.chips.setSelected(game.code);
     refs.jackpotLabel.textContent = `${game.name} · Last draw`;
     renderLastDraw(game);
     refs.coverage.textContent = `Default filters keep ${Math.round(game.defaultCoverageShare * 100)}% of all `
@@ -233,8 +221,9 @@ export function mountGenerateScreen(root, { api }) {
     showEmptyPicks();
     try {
       state.games = await api.fetchGames();
-      renderChips();
-      selectGame(readSetting('game', DEFAULT_GAME));
+      const selectedCode = rememberedGameCode(state.games);
+      renderChips(selectedCode);
+      selectGame(selectedCode);
       state.countdownTimer = window.setInterval(renderCountdown, COUNTDOWN_TICK_MS);
     } catch (error) {
       refs.jackpotLabel.textContent = 'Games unavailable';

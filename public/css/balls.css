@@ -24,6 +24,12 @@
   font-size: 13px;
 }
 
+/* Frosted silver for "cold" numbers */
+.ball--cold {
+  background: radial-gradient(circle at 35% 30%, #F4F6FA, #AEB7C8 55%, #5E6A80);
+  color: #141A2B;
+}
+
 .ball--dropping {
   opacity: 0;
   animation: ball-drop 0.62s var(--ease-bounce) var(--delay, 0ms) forwards;

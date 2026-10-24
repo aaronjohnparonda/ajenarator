@@ -1,0 +1,94 @@
+.date-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-filter__label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.date-filter__controls {
+  display: flex;
+  gap: 8px;
+}
+
+.date-filter__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.date-filter__clear {
+  flex-shrink: 0;
+}
+
+.results-summary {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.draw-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.draw-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--surface-raised);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.draw-row__top,
+.draw-row__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.draw-row__date {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.draw-row__jackpot {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--gold-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.draw-row__balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.draw-row__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.load-more {
+  align-self: center;
+}
+
+/* display:inline-flex would otherwise override the hidden attribute */
+.load-more[hidden] {
+  display: none;
+}

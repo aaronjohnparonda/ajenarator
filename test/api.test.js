@@ -20,6 +20,16 @@ const fakeService = {
   async listGames() {
     return [SAMPLE_GAME];
   },
+  async getStats(slug) {
+    if (slug !== '6-42') {
+      throw new GameNotFoundError(slug);
+    }
+    return { gameCode: '6/42', totalDraws: 1612 };
+  },
+  async listDraws(slug, options) {
+    this.calls.push({ slug, ...options });
+    return { gameCode: '6/42', page: options.page, limit: options.limit, total: 1612, totalPages: 81, toDate: options.toDate, draws: [] };
+  },
   async generate(request) {
     this.calls.push(request);
     if (this.nextError) {
@@ -110,6 +120,37 @@ test('unexpected errors become a generic 500 with no internal details', async ()
   assert.equal(response.status, 500);
   assert.equal(text.includes('secret-host'), false);
   assert.equal(JSON.parse(text).error.code, 'SERVER_ERROR');
+});
+
+test('GET stats returns data, and 404 for an unknown game', async () => {
+  let response = await fetch(`${baseUrl}/games/6-42/stats`);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.totalDraws, 1612);
+  response = await fetch(`${baseUrl}/games/6-99/stats`);
+  assert.equal(response.status, 404);
+});
+
+test('GET draws uses defaults and passes valid paging and date', async () => {
+  let response = await fetch(`${baseUrl}/games/6-42/draws`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(fakeService.calls.at(-1), { slug: '6-42', page: 1, limit: 20, toDate: null });
+
+  response = await fetch(`${baseUrl}/games/6-42/draws?page=3&limit=50&to=2020-03-31`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(fakeService.calls.at(-1), { slug: '6-42', page: 3, limit: 50, toDate: '2020-03-31' });
+});
+
+test('GET draws rejects bad paging and dates', async () => {
+  const cases = [
+    ['page=0', 'INVALID_PAGE'], ['page=abc', 'INVALID_PAGE'], ['page=1&page=2', 'INVALID_PAGE'],
+    ['limit=51', 'INVALID_LIMIT'], ['limit=-1', 'INVALID_LIMIT'],
+    ['to=2025-02-30', 'INVALID_DATE'], ['to=yesterday', 'INVALID_DATE'],
+  ];
+  for (const [query, code] of cases) {
+    const response = await fetch(`${baseUrl}/games/6-42/draws?${query}`);
+    assert.equal(response.status, 422, query);
+    assert.equal((await response.json()).error.code, code, query);
+  }
 });
 
 test('generate is rate limited per visitor', async () => {
