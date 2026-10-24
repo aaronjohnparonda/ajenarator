@@ -15,3 +15,7 @@
 @import url('./home.css');
 @import url('./stats.css');
 @import url('./results.css');
+@import url('./controls.css');
+@import url('./sheet.css');
+@import url('./number-picker.css');
+@import url('./backtest.css');

@@ -76,6 +76,14 @@ export async function fetchDraws(gameCode, { page = 1, limit = 20, toDate = null
   return request(`/games/${encodeURIComponent(slugForCode(gameCode))}/draws?${query}`);
 }
 
+/** Backtest filter settings against every past draw of the game. */
+export async function backtestFilters(gameCode, filters) {
+  return request(`/games/${encodeURIComponent(slugForCode(gameCode))}/backtest`, {
+    method: 'POST',
+    body: { filters },
+  });
+}
+
 /** @returns {Promise<{ gameCode, picks: Array<{numbers, pattern}>, coverageShare, filters }>} */
 export async function generatePicks({ gameCode, count, filters }) {
   return request(`/games/${encodeURIComponent(slugForCode(gameCode))}/generate`, {

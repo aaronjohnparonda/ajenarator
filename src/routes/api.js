@@ -9,6 +9,7 @@
  *   POST /api/v1/games/:slug/generate   body { "count": 1-10, "filters": { ... }? }
  *   GET  /api/v1/games/:slug/stats      frequency, hot/cold, gaps, distributions
  *   GET  /api/v1/games/:slug/draws      ?page=1&limit=20&to=YYYY-MM-DD (all optional)
+ *   POST /api/v1/games/:slug/backtest   body { "filters": { ... }? }
  */
 
 const express = require('express');
@@ -21,6 +22,7 @@ const { isValidIsoDate } = require('../utils/ph-time');
 const ONE_MINUTE_MS = 60 * 1000;
 const READ_REQUESTS_PER_MINUTE = 120;
 const GENERATE_REQUESTS_PER_MINUTE = 30;
+const BACKTEST_REQUESTS_PER_MINUTE = 20;
 const DRAWS_DEFAULT_LIMIT = 20;
 const DRAWS_MAX_LIMIT = 50;
 const DRAWS_MAX_PAGE = 1000;
@@ -64,6 +66,7 @@ function createApiRouter({ gameService }) {
   const router = express.Router();
   const readLimiter = limiter(READ_REQUESTS_PER_MINUTE);
   const generateLimiter = limiter(GENERATE_REQUESTS_PER_MINUTE);
+  const backtestLimiter = limiter(BACKTEST_REQUESTS_PER_MINUTE);
 
   router.get('/games', readLimiter, async (req, res) => {
     const games = await gameService.listGames();
@@ -84,6 +87,18 @@ function createApiRouter({ gameService }) {
     }
 
     const result = await gameService.generate({ slug: req.params.slug, count: body.count, filters: body.filters });
+    return res.json({ success: true, data: result });
+  });
+
+  router.post('/games/:slug/backtest', backtestLimiter, async (req, res) => {
+    const body = req.body === undefined ? {} : req.body;
+    if (!isPlainObject(body)) {
+      return sendError(res, 422, 'INVALID_REQUEST', 'Send a JSON object like {"filters": {}}.');
+    }
+    if (body.filters !== undefined && !isPlainObject(body.filters)) {
+      return sendError(res, 422, 'INVALID_FILTERS', 'filters must be an object.');
+    }
+    const result = await gameService.backtest({ slug: req.params.slug, filters: body.filters });
     return res.json({ success: true, data: result });
   });
 

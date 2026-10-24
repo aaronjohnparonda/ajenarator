@@ -19,6 +19,7 @@ const { generateCombinations } = require('../engine/generator');
 const { estimateCoverage } = require('../engine/coverage');
 const { describeCombination } = require('../engine/patterns');
 const { computeStatistics } = require('../engine/statistics');
+const { runBacktest } = require('../engine/backtest');
 const { nowInManila } = require('../utils/ph-time');
 
 const GAMES_CACHE_MS = 10 * 60 * 1000;
@@ -48,6 +49,7 @@ function createGameService({ db, clock = () => Date.now() }) {
   const pastWinnersCache = new Map();
   const coverageCache = new Map();
   const statsCache = new Map();
+  const drawsCache = new Map();
 
   async function getGames() {
     if (gamesCache && gamesCache.expiresAt > clock()) {
@@ -99,6 +101,7 @@ function createGameService({ db, clock = () => Date.now() }) {
       maxNumber: game.maxNumber,
       drawDays: [...game.drawDays].sort((a, b) => a - b),
       drawTime: game.drawTime.slice(0, 5),
+      defaultFilters: resolveFilters(game),
       defaultCoverageShare: getCoverageShare(game, resolveFilters(game)),
       lastDraw: latestDraws.get(game.id) || null,
     }));
@@ -126,23 +129,58 @@ function createGameService({ db, clock = () => Date.now() }) {
   }
 
   /**
-   * Statistics for one game. Cached until a new draw is saved or the Philippine date changes
-   * (one cheap MAX(draw_date) query decides), so a fresh result shows up immediately.
+   * A game's full draw history, cached until a new draw is saved
+   * (one cheap MAX(draw_date) query decides), so fresh results show up immediately.
    */
+  async function getDraws(game) {
+    const latestDrawDate = await loadLatestDrawDate(db, game.id);
+    const cached = drawsCache.get(game.id);
+    if (cached && cached.latestDrawDate === latestDrawDate) {
+      return { draws: cached.draws, latestDrawDate };
+    }
+    const draws = await loadDrawsForGame(db, game.id);
+    drawsCache.set(game.id, { latestDrawDate, draws });
+    return { draws, latestDrawDate };
+  }
+
+  /** Statistics for one game; recomputed only when a new draw arrives or the Philippine date changes. */
   async function getStats(slug) {
     const game = await findGame(slug);
     const today = nowInManila(new Date(clock())).date;
-    const latestDrawDate = await loadLatestDrawDate(db, game.id);
+    const { draws, latestDrawDate } = await getDraws(game);
 
     const cached = statsCache.get(game.id);
     if (cached && cached.latestDrawDate === latestDrawDate && cached.today === today) {
       return cached.result;
     }
 
-    const draws = await loadDrawsForGame(db, game.id);
     const result = { gameCode: game.code, ...computeStatistics({ game, draws, today }) };
     statsCache.set(game.id, { latestDrawDate, today, result });
     return result;
+  }
+
+  /**
+   * How many past winning combinations would these filter settings have kept,
+   * compared with the share of ALL combinations they keep?
+   * @throws GameNotFoundError, FilterValidationError
+   */
+  async function backtest({ slug, filters = {} }) {
+    const game = await findGame(slug);
+    const resolvedFilters = resolveFilters(game, filters);
+    const { draws } = await getDraws(game);
+    const keptShare = getCoverageShare(game, resolvedFilters);
+    const result = runBacktest({ game, filters: resolvedFilters, draws, coverage: { keptShare } });
+
+    return {
+      gameCode: game.code,
+      totalDraws: result.totalDraws,
+      keptDraws: result.keptDraws,
+      keptShareOfWinners: round(result.keptShareOfWinners, 4),
+      keptShareRange: { low: round(result.keptShareRange.low, 4), high: round(result.keptShareRange.high, 4) },
+      keptShareOfAllCombinations: keptShare,
+      removedByRule: result.removedByRule,
+      verdict: result.verdict,
+    };
   }
 
   /** One page of a game's draw history, newest first. */
@@ -160,7 +198,7 @@ function createGameService({ db, clock = () => Date.now() }) {
     };
   }
 
-  return { listGames, generate, getStats, listDraws };
+  return { listGames, generate, getStats, listDraws, backtest };
 }
 
 module.exports = { createGameService, GameNotFoundError, slugForCode };

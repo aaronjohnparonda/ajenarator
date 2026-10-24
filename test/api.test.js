@@ -30,6 +30,10 @@ const fakeService = {
     this.calls.push({ slug, ...options });
     return { gameCode: '6/42', page: options.page, limit: options.limit, total: 1612, totalPages: 81, toDate: options.toDate, draws: [] };
   },
+  async backtest(request) {
+    this.calls.push({ backtest: request });
+    return { gameCode: '6/42', totalDraws: 1612, keptDraws: 1279, keptShareOfWinners: 0.7934, keptShareOfAllCombinations: 0.795, removedByRule: {}, verdict: 'No edge' };
+  },
   async generate(request) {
     this.calls.push(request);
     if (this.nextError) {
@@ -151,6 +155,19 @@ test('GET draws rejects bad paging and dates', async () => {
     assert.equal(response.status, 422, query);
     assert.equal((await response.json()).error.code, code, query);
   }
+});
+
+test('POST backtest passes filters, works with no body, and rejects bad filters', async () => {
+  let response = await post('/games/6-42/backtest', { filters: { consecutive: { mode: 'relaxed' } } });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.keptDraws, 1279);
+  assert.deepEqual(fakeService.calls.at(-1), { backtest: { slug: '6-42', filters: { consecutive: { mode: 'relaxed' } } } });
+
+  response = await fetch(`${baseUrl}/games/6-42/backtest`, { method: 'POST' });
+  assert.equal(response.status, 200);
+
+  response = await post('/games/6-42/backtest', { filters: [1, 2] });
+  assert.equal(response.status, 422);
 });
 
 test('generate is rate limited per visitor', async () => {

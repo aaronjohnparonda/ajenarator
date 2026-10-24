@@ -11,6 +11,8 @@ import { countUp } from '../ui/count-up.js';
 import { showToast, announce } from '../ui/toast.js';
 import { readSetting, writeSetting } from '../core/storage.js';
 import { renderGameChips, rememberedGameCode } from '../ui/game-chips.js';
+import { openFilterSheet } from '../ui/filter-sheet.js';
+import { loadFilters, saveFilters, countChanges } from '../lib/filters-store.js';
 import { playClick, playChime } from '../core/sound.js';
 import { vibrate } from '../core/haptics.js';
 import { nextDraw, drawDayLabel, formatDrawTime, formatCountdown } from '../lib/draw-schedule.js';
@@ -47,6 +49,8 @@ export function mountGenerateScreen(root, { api }) {
     count: clampCount(readSetting('pickCount', COUNT_DEFAULT)),
     busy: false,
     chips: null,
+    filters: null,
+    coverageShare: null,
     countdownTimer: null,
     finishTimer: null,
   };
@@ -106,6 +110,44 @@ export function mountGenerateScreen(root, { api }) {
     refs.lastDrawMeta.textContent = `${formatDrawDate(draw.drawDate)} · ${formatWinners(draw.winners)}${rollsOver}`;
   }
 
+  function renderFiltersSummary() {
+    const changes = countChanges(state.game, state.filters);
+    refs.filtersLabel.textContent = changes === 0
+      ? 'Default filters'
+      : `Custom filters · ${changes} ${changes === 1 ? 'change' : 'changes'}`;
+    refs.filtersButton.classList.toggle('filters-button--custom', changes > 0);
+
+    const total = formatNumber(totalCombinations(state.game.maxNumber));
+    if (changes === 0) {
+      refs.coverage.textContent = `Default filters keep ${Math.round(state.game.defaultCoverageShare * 100)}% of all ${total} combinations`;
+    } else if (state.coverageShare === null) {
+      refs.coverage.textContent = 'Generate to see how much of the combination space your filters keep';
+    } else {
+      refs.coverage.textContent = `Your filters keep ${(state.coverageShare * 100).toFixed(state.coverageShare < 0.1 ? 1 : 0)}% of all ${total} combinations`;
+    }
+  }
+
+  function openFilters() {
+    if (state.busy || !state.game) {
+      return;
+    }
+    const game = state.game;
+    openFilterSheet({
+      game,
+      settings: state.filters,
+      api,
+      opener: refs.filtersButton,
+      onApply(settings) {
+        state.filters = settings;
+        state.coverageShare = null;
+        saveFilters(game, settings);
+        renderFiltersSummary();
+        showEmptyPicks();
+        showToast('Filters applied');
+      },
+    });
+  }
+
   function renderChips(selectedCode) {
     state.chips = renderGameChips(refs.chips, state.games, { selectedCode, onSelect: selectGame });
   }
@@ -120,8 +162,11 @@ export function mountGenerateScreen(root, { api }) {
     state.chips.setSelected(game.code);
     refs.jackpotLabel.textContent = `${game.name} · Last draw`;
     renderLastDraw(game);
-    refs.coverage.textContent = `Default filters keep ${Math.round(game.defaultCoverageShare * 100)}% of all `
-      + `${formatNumber(totalCombinations(game.maxNumber))} combinations`;
+    if (changed) {
+      state.filters = loadFilters(game);
+      state.coverageShare = null;
+    }
+    renderFiltersSummary();
     renderCountdown();
 
     if (changed) {
@@ -147,7 +192,7 @@ export function mountGenerateScreen(root, { api }) {
       [`${lowCount} low · ${6 - lowCount} high`, false],
       [`${oddCount} odd · ${6 - oddCount} even`, false],
       [`Sum ${sum}`, false],
-      ['Passes all filters', true],
+      ['Passes your filters', true],
     ];
     badges.forEach(([label, gold], badgeIndex) => {
       const badge = createElement('span', `badge badge--appear${gold ? ' badge--gold' : ''}`, label);
@@ -191,7 +236,9 @@ export function mountGenerateScreen(root, { api }) {
     vibrate(12);
 
     try {
-      const result = await api.generatePicks({ gameCode: state.game.code, count: state.count });
+      const result = await api.generatePicks({ gameCode: state.game.code, count: state.count, filters: state.filters });
+      state.coverageShare = result.coverageShare;
+      renderFiltersSummary();
       const finishesAt = renderPicks(result.picks);
       announce(`${result.picks.length} picks for ${state.game.name}: `
         + result.picks.map((pick) => pick.numbers.join(', ')).join('; '));
@@ -213,6 +260,7 @@ export function mountGenerateScreen(root, { api }) {
     renderCount();
   });
   refs.generateButton.addEventListener('click', generate);
+  refs.filtersButton.addEventListener('click', openFilters);
 
   async function load() {
     refs.jackpotLabel.textContent = 'Loading games…';

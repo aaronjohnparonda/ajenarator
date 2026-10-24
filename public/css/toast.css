@@ -1,7 +1,7 @@
 .toast-region {
   position: fixed;
   left: 50%;
-  bottom: calc(88px + env(safe-area-inset-bottom));
+  top: calc(16px + env(safe-area-inset-top));
   z-index: 50;
   width: min(92vw, 420px);
   transform: translateX(-50%);
@@ -28,7 +28,7 @@
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
@@ -39,12 +39,6 @@
 @keyframes toast-out {
   to {
     opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-@media (min-width: 900px) {
-  .toast-region {
-    bottom: 32px;
+    transform: translateY(-8px);
   }
 }

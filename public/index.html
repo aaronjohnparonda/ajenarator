@@ -98,6 +98,11 @@
           </button>
         </div>
       </div>
+      <button class="filters-button" type="button" data-ref="filtersButton" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+        <span class="filters-button__label" data-ref="filtersLabel">Default filters</span>
+        <svg class="filters-button__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
       <p class="picks-coverage" data-ref="coverage"></p>
 
       <div class="picks-list" data-ref="picks"></div>
@@ -260,6 +265,118 @@
         <span data-ref="order"></span>
       </div>
     </article>
+  </template>
+
+  <template id="tpl-filter-sheet">
+    <dialog class="sheet" aria-labelledby="filter-title">
+      <form class="sheet__inner" data-ref="form" novalidate>
+        <header class="sheet__header">
+          <div class="sheet__titles">
+            <h2 class="sheet__title" id="filter-title">Filters</h2>
+            <span class="sheet__subtitle" data-ref="gameName"></span>
+          </div>
+          <button class="icon-button" type="button" data-ref="close" aria-label="Close filters">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+
+        <div class="sheet__body">
+          <p class="sheet__intro">Picks must pass every rule that is on. Rules shape your picks; they don’t change the odds of any ticket.</p>
+
+          <fieldset class="filter-group">
+            <legend class="filter-group__title">Balance</legend>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">No all odd or all even</span><span class="filter-row__hint">Removes picks like 1-3-5-7-9-11</span></span>
+              <input class="switch" type="checkbox" data-rule="oddEvenBalance">
+            </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">No all low or all high</span><span class="filter-row__hint">Keeps numbers from both halves of the range</span></span>
+              <input class="switch" type="checkbox" data-rule="lowHighBalance">
+            </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">At least 3 tens-groups</span><span class="filter-row__hint">Avoids picks crowded into one or two decades</span></span>
+              <input class="switch" type="checkbox" data-rule="tensGroups">
+            </label>
+          </fieldset>
+
+          <fieldset class="filter-group">
+            <legend class="filter-group__title">Patterns</legend>
+            <div class="filter-row filter-row--stacked">
+              <label class="filter-row__main">
+                <span class="filter-row__text"><span class="filter-row__name">Limit consecutive numbers</span><span class="filter-row__hint" data-ref="consecutiveHint"></span></span>
+                <input class="switch" type="checkbox" data-rule="consecutive">
+              </label>
+              <div class="segmented" role="radiogroup" aria-label="Consecutive rule strength" data-ref="consecutiveMode">
+                <label class="segmented__option"><input type="radio" name="consecutive-mode" value="strict"><span>Strict</span></label>
+                <label class="segmented__option"><input type="radio" name="consecutive-mode" value="relaxed"><span>Relaxed</span></label>
+              </div>
+            </div>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">No 4 evenly spaced</span><span class="filter-row__hint">Removes patterns like 5-10-15-20</span></span>
+              <input class="switch" type="checkbox" data-rule="evenlySpaced">
+            </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">Never repeat a past winner</span><span class="filter-row__hint">Skips every winning combination since 2016</span></span>
+              <input class="switch" type="checkbox" data-rule="pastWinners">
+            </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">At most 2 sharing a last digit</span><span class="filter-row__hint">Avoids picks like 3, 13, 23</span></span>
+              <input class="switch" type="checkbox" data-rule="lastDigit">
+            </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">Anti-birthday</span><span class="filter-row__hint">At least one number above 31, so a win is less likely to be shared</span></span>
+              <input class="switch" type="checkbox" data-rule="antiBirthday">
+            </label>
+          </fieldset>
+
+          <fieldset class="filter-group">
+            <legend class="filter-group__title">Sum of the six numbers</legend>
+            <div class="filter-row filter-row--stacked">
+              <label class="filter-row__main">
+                <span class="filter-row__text"><span class="filter-row__name">Keep the sum in range</span><span class="filter-row__hint" data-ref="sumHint"></span></span>
+                <input class="switch" type="checkbox" data-rule="sumRange">
+              </label>
+              <div class="range-inputs" data-ref="sumInputs">
+                <label class="range-inputs__field"><span>From</span><input type="number" inputmode="numeric" data-ref="sumMin"></label>
+                <label class="range-inputs__field"><span>To</span><input type="number" inputmode="numeric" data-ref="sumMax"></label>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="filter-group">
+            <legend class="filter-group__title">Your numbers</legend>
+            <p class="filter-group__hint">Tap once to always include (up to 5), twice to exclude, again to clear.</p>
+            <div class="number-picker" data-ref="numberGrid"></div>
+            <p class="number-picker__summary" data-ref="numberSummary" aria-live="polite"></p>
+          </fieldset>
+
+          <section class="backtest-box" aria-labelledby="backtest-title">
+            <h3 class="backtest-box__title" id="backtest-title">Test against past draws</h3>
+            <p class="backtest-box__text">See how many real winning combinations these settings would have kept.</p>
+            <button class="secondary-button" type="button" data-ref="runBacktest">Run backtest</button>
+            <div class="backtest-result" data-ref="backtestResult" aria-live="polite"></div>
+          </section>
+
+          <p class="form-error" data-ref="error" role="alert"></p>
+        </div>
+
+        <footer class="sheet__footer">
+          <button class="secondary-button" type="button" data-ref="reset">Reset</button>
+          <button class="primary-button sheet__apply" type="submit">Apply filters</button>
+        </footer>
+      </form>
+    </dialog>
+  </template>
+
+  <template id="tpl-backtest-result">
+    <div class="backtest-rings">
+      <div class="ring" data-ref="winnersRing"><span class="ring__value" data-ref="winnersValue"></span></div>
+      <div class="ring ring--muted" data-ref="allRing"><span class="ring__value" data-ref="allValue"></span></div>
+      <span class="backtest-rings__label" data-ref="winnersLabel"></span>
+      <span class="backtest-rings__label">of all possible combinations kept</span>
+    </div>
+    <p class="backtest-verdict" data-ref="verdict"></p>
+    <ul class="backtest-removed" data-ref="removed"></ul>
   </template>
 
   <template id="tpl-coming-soon">
