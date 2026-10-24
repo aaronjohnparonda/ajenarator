@@ -75,13 +75,15 @@
 
       <div class="game-chips" role="group" aria-label="Choose a game" data-ref="chips"></div>
 
-      <article class="jackpot-card" aria-label="Jackpot">
+      <article class="jackpot-card" aria-label="Last draw and next draw">
         <div class="jackpot-card__top">
           <span class="jackpot-card__label" data-ref="jackpotLabel"></span>
           <span class="jackpot-card__day"><span class="jackpot-card__dot" aria-hidden="true"></span><span data-ref="drawDay"></span></span>
         </div>
+        <div class="jackpot-card__balls" data-ref="lastBalls" aria-label="Last winning numbers"></div>
         <span class="jackpot-card__amount" data-ref="jackpotAmount"></span>
-        <span class="jackpot-card__meta" data-ref="drawMeta"></span>
+        <span class="jackpot-card__meta" data-ref="lastDrawMeta"></span>
+        <span class="jackpot-card__next" data-ref="drawMeta"></span>
       </article>
 
       <div class="picks-header">

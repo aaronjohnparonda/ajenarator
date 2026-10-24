@@ -61,9 +61,26 @@
   font-variant-numeric: tabular-nums;
 }
 
+.jackpot-card__balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 32px;
+}
+
 .jackpot-card__meta {
   font-size: 13px;
   color: var(--jackpot-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.jackpot-card__next {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--jackpot-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--jackpot-accent);
   font-variant-numeric: tabular-nums;
 }
 

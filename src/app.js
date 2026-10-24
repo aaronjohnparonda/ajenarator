@@ -13,6 +13,7 @@
 const path = require('node:path');
 const express = require('express');
 const helmet = require('helmet');
+const { createApiRouter } = require('./routes/api');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const JSON_BODY_LIMIT = '10kb';
@@ -21,7 +22,11 @@ function sendError(res, status, code, message) {
   res.status(status).json({ success: false, error: { code, message } });
 }
 
-function createApp() {
+/**
+ * @param {object} [dependencies]
+ * @param {object} [dependencies.gameService] - from createGameService(); tests pass a stand-in
+ */
+function createApp({ gameService } = {}) {
   const app = express();
   app.disable('x-powered-by');
   // Render (and most hosts) put one proxy in front of the app; needed for correct client IPs.
@@ -49,6 +54,10 @@ function createApp() {
   app.get('/api/v1/health', (req, res) => {
     res.json({ success: true, data: { status: 'ok' } });
   });
+
+  if (gameService) {
+    app.use('/api/v1', createApiRouter({ gameService }));
+  }
 
   app.use('/api', (req, res) => sendError(res, 404, 'NOT_FOUND', 'That endpoint does not exist.'));
 

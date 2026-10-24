@@ -212,6 +212,26 @@ async function loadLatestDraws(db, gameId, limit) {
   }));
 }
 
+/**
+ * The most recent draw of EVERY game in one query (uses the game_id + draw_date unique index).
+ * @returns {Promise<Map<number, { drawDate, numbers, drawOrder, jackpotAmount, winners }>>} keyed by game id
+ */
+async function loadLatestDrawPerGame(db) {
+  const [rows] = await db.query(`
+    SELECT d.game_id, d.draw_date, d.n1, d.n2, d.n3, d.n4, d.n5, d.n6, d.draw_order, d.jackpot_amount, d.winners
+    FROM draws d
+    JOIN (SELECT game_id, MAX(draw_date) AS latest_date FROM draws GROUP BY game_id) latest
+      ON latest.game_id = d.game_id AND latest.latest_date = d.draw_date
+  `);
+  return new Map(rows.map((row) => [row.game_id, {
+    drawDate: row.draw_date,
+    numbers: [row.n1, row.n2, row.n3, row.n4, row.n5, row.n6],
+    drawOrder: row.draw_order,
+    jackpotAmount: row.jackpot_amount,
+    winners: row.winners,
+  }]));
+}
+
 module.exports = {
   saveDraws,
   loadStoredDrawKeys,
@@ -219,5 +239,6 @@ module.exports = {
   loadDrawsForGame,
   loadPastWinnerKeys,
   loadLatestDraws,
+  loadLatestDrawPerGame,
   drawKey,
 };

@@ -4,7 +4,7 @@ import { initThemeToggle } from './core/theme.js';
 import { initSoundToggle } from './core/sound.js';
 import { createRouter } from './core/router.js';
 import { greetingFor } from './lib/ph-time.js';
-import * as api from './data/mock-api.js';
+import * as api from './data/api.js';
 import { mountGenerateScreen } from './screens/generate.js';
 import { mountComingSoon } from './screens/coming-soon.js';
 

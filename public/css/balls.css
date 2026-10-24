@@ -17,6 +17,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Smaller balls for past results (no drop animation) */
+.ball--small {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+}
+
 .ball--dropping {
   opacity: 0;
   animation: ball-drop 0.62s var(--ease-bounce) var(--delay, 0ms) forwards;
@@ -72,6 +79,12 @@
     width: 40px;
     height: 40px;
     font-size: 15px;
+  }
+
+  .ball--small {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
   }
 }
 

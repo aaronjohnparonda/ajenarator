@@ -1,0 +1,126 @@
+'use strict';
+
+/**
+ * Game service: what the API needs about games, built from the repositories and the engine.
+ *
+ * Efficiency:
+ *   - The game list (rarely changes) is cached for 10 minutes; latest draws are read fresh
+ *     every time in ONE query, so new results appear as soon as the nightly check saves them.
+ *   - Past winning combinations (for the "no repeats" filter) are cached for 10 minutes per game.
+ *   - Coverage estimates are cached per game + filter settings (the defaults are computed once).
+ */
+
+const { loadActiveGames } = require('../repositories/game-repository');
+const { loadLatestDrawPerGame, loadPastWinnerKeys } = require('../repositories/draw-repository');
+const { resolveFilters } = require('../engine/filters');
+const { generateCombinations } = require('../engine/generator');
+const { estimateCoverage } = require('../engine/coverage');
+const { describeCombination } = require('../engine/patterns');
+
+const GAMES_CACHE_MS = 10 * 60 * 1000;
+const PAST_WINNERS_CACHE_MS = 10 * 60 * 1000;
+const COVERAGE_SAMPLE_SIZE = 100000;
+const COVERAGE_CACHE_LIMIT = 100;
+
+class GameNotFoundError extends Error {
+  constructor(slug) {
+    super(`No game called "${slug}". Use 6-42, 6-45, 6-49, 6-55 or 6-58.`);
+    this.name = 'GameNotFoundError';
+  }
+}
+
+/** "6/42" <-> "6-42" (a slash cannot sit safely inside a URL path segment). */
+function slugForCode(code) {
+  return code.replace('/', '-');
+}
+
+function round(value, places) {
+  const factor = 10 ** places;
+  return Math.round(value * factor) / factor;
+}
+
+function createGameService({ db, clock = () => Date.now() }) {
+  let gamesCache = null;
+  const pastWinnersCache = new Map();
+  const coverageCache = new Map();
+
+  async function getGames() {
+    if (gamesCache && gamesCache.expiresAt > clock()) {
+      return gamesCache.games;
+    }
+    const games = await loadActiveGames(db);
+    gamesCache = { games, expiresAt: clock() + GAMES_CACHE_MS };
+    return games;
+  }
+
+  async function findGame(slug) {
+    const game = (await getGames()).find((entry) => slugForCode(entry.code) === slug);
+    if (!game) {
+      throw new GameNotFoundError(slug);
+    }
+    return game;
+  }
+
+  async function getPastWinnerKeys(game) {
+    const cached = pastWinnersCache.get(game.id);
+    if (cached && cached.expiresAt > clock()) {
+      return cached.keys;
+    }
+    const keys = await loadPastWinnerKeys(db, game.id);
+    pastWinnersCache.set(game.id, { keys, expiresAt: clock() + PAST_WINNERS_CACHE_MS });
+    return keys;
+  }
+
+  function getCoverageShare(game, filters) {
+    const key = `${game.code}|${JSON.stringify(filters)}`;
+    if (coverageCache.has(key)) {
+      return coverageCache.get(key);
+    }
+    const share = round(estimateCoverage({ game, filters, sampleSize: COVERAGE_SAMPLE_SIZE }).keptShare, 4);
+    if (coverageCache.size >= COVERAGE_CACHE_LIMIT) {
+      coverageCache.delete(coverageCache.keys().next().value); // drop the oldest entry
+    }
+    coverageCache.set(key, share);
+    return share;
+  }
+
+  /** All games with schedule, default coverage and their most recent draw. */
+  async function listGames() {
+    const [games, latestDraws] = await Promise.all([getGames(), loadLatestDrawPerGame(db)]);
+    return games.map((game) => ({
+      code: game.code,
+      slug: slugForCode(game.code),
+      name: game.name,
+      maxNumber: game.maxNumber,
+      drawDays: [...game.drawDays].sort((a, b) => a - b),
+      drawTime: game.drawTime.slice(0, 5),
+      defaultCoverageShare: getCoverageShare(game, resolveFilters(game)),
+      lastDraw: latestDraws.get(game.id) || null,
+    }));
+  }
+
+  /**
+   * @param {{ slug: string, count: number, filters?: object }} request
+   * @throws GameNotFoundError, FilterValidationError, ImpossibleFiltersError
+   */
+  async function generate({ slug, count, filters = {} }) {
+    const game = await findGame(slug);
+    const resolvedFilters = resolveFilters(game, filters);
+    const pastWinnerKeys = resolvedFilters.pastWinners.enabled ? await getPastWinnerKeys(game) : new Set();
+    const { combinations } = generateCombinations({ game, filters: resolvedFilters, count, pastWinnerKeys });
+
+    return {
+      gameCode: game.code,
+      picks: combinations.map((numbers) => {
+        const pattern = describeCombination(numbers, game.maxNumber);
+        return { numbers, pattern: { sum: pattern.sum, oddCount: pattern.oddCount, lowCount: pattern.lowCount } };
+      }),
+      coverageShare: getCoverageShare(game, resolvedFilters),
+      filters: resolvedFilters,
+    };
+  }
+
+  return { listGames, generate };
+}
+
+module.exports = { createGameService, GameNotFoundError, slugForCode };

@@ -13,7 +13,9 @@ import { readSetting, writeSetting } from '../core/storage.js';
 import { playClick, playChime } from '../core/sound.js';
 import { vibrate } from '../core/haptics.js';
 import { nextDraw, drawDayLabel, formatDrawTime, formatCountdown } from '../lib/draw-schedule.js';
-import { formatPeso, formatNumber, pad2, totalCombinations } from '../lib/format.js';
+import {
+  formatPeso, formatNumber, pad2, totalCombinations, formatDrawDate, formatWinners,
+} from '../lib/format.js';
 
 const COUNT_MIN = 1;
 const COUNT_MAX = 10;
@@ -76,7 +78,31 @@ export function mountGenerateScreen(root, { api }) {
       when = `tomorrow at ${time}`;
     }
     refs.drawDay.textContent = drawDayLabel(draw);
-    refs.drawMeta.textContent = `Draw ${when} · in ${formatCountdown(draw.startsAt - new Date())}`;
+    refs.drawMeta.textContent = `Next draw ${when} · in ${formatCountdown(draw.startsAt - new Date())}`;
+  }
+
+  function renderLastDraw(game) {
+    const draw = game.lastDraw;
+    if (!draw) {
+      refs.lastBalls.replaceChildren();
+      refs.jackpotAmount.textContent = '₱—';
+      refs.jackpotAmount.dataset.value = '0';
+      refs.lastDrawMeta.textContent = 'No results saved yet';
+      return;
+    }
+
+    refs.lastBalls.replaceChildren(...draw.numbers.map((number) => createElement('span', 'ball ball--small', pad2(number))));
+    refs.lastBalls.setAttribute('aria-label', `Last winning numbers: ${draw.numbers.join(', ')}`);
+
+    if (draw.jackpotAmount === null) {
+      refs.jackpotAmount.textContent = '₱—';
+      refs.jackpotAmount.dataset.value = '0';
+    } else {
+      countUp(refs.jackpotAmount, Number(draw.jackpotAmount), { format: formatPeso });
+    }
+
+    const rollsOver = draw.winners === 0 ? ' (jackpot rolls over)' : '';
+    refs.lastDrawMeta.textContent = `${formatDrawDate(draw.drawDate)} · ${formatWinners(draw.winners)}${rollsOver}`;
   }
 
   function renderChips() {
@@ -104,9 +130,9 @@ export function mountGenerateScreen(root, { api }) {
     refs.chips.querySelectorAll('.game-chip').forEach((chip) => {
       chip.setAttribute('aria-pressed', String(chip.dataset.code === game.code));
     });
-    refs.jackpotLabel.textContent = `${game.name} · Jackpot`;
-    countUp(refs.jackpotAmount, Number(game.jackpotAmount), { format: formatPeso });
-    refs.coverage.textContent = `Default filters keep ${Math.round(game.coverageShare * 100)}% of all `
+    refs.jackpotLabel.textContent = `${game.name} · Last draw`;
+    renderLastDraw(game);
+    refs.coverage.textContent = `Default filters keep ${Math.round(game.defaultCoverageShare * 100)}% of all `
       + `${formatNumber(totalCombinations(game.maxNumber))} combinations`;
     renderCountdown();
 
@@ -183,7 +209,7 @@ export function mountGenerateScreen(root, { api }) {
         + result.picks.map((pick) => pick.numbers.join(', ')).join('; '));
       state.finishTimer = window.setTimeout(() => setBusy(false), finishesAt);
     } catch (error) {
-      showToast("Couldn't generate picks. Check your connection and try again.");
+      showToast(error.isUserFacing ? error.message : "Couldn't generate picks. Check your connection and try again.");
       setBusy(false);
     }
   }
