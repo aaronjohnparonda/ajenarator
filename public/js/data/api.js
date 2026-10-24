@@ -14,9 +14,9 @@ export class ApiError extends Error {
     this.details = details;
   }
 
-  /** True when the message is written for people (validation, limits) and safe to show as-is. */
+  /** True when the message is written for people (validation, limits, sign-in) and safe to show as-is. */
   get isUserFacing() {
-    return this.status === 404 || this.status === 422 || this.status === 429;
+    return [401, 403, 404, 422, 429, 503].includes(this.status) && this.code !== 'BAD_RESPONSE';
   }
 }
 
@@ -90,4 +90,25 @@ export async function generatePicks({ gameCode, count, filters }) {
     method: 'POST',
     body: filters === undefined ? { count } : { count, filters },
   });
+}
+
+/** { enabled, googleClientId } - whether Google sign-in is set up on this server. */
+export async function fetchAuthConfig() {
+  return request('/auth/config');
+}
+
+/** The signed-in owner ({ email, name, picture }) or null. */
+export async function fetchCurrentUser() {
+  const data = await request('/auth/me');
+  return data.user;
+}
+
+/** Exchanges Google's ID token for a session cookie. Returns the user. */
+export async function signInWithGoogle(credential) {
+  const data = await request('/auth/google', { method: 'POST', body: { credential } });
+  return data.user;
+}
+
+export async function signOut() {
+  return request('/auth/logout', { method: 'POST', body: {} });
 }

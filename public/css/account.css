@@ -1,0 +1,214 @@
+/* Me screen: owner sign-in card, profile card, owner badge */
+
+.screen--account {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.account-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 22px 24px;
+  border: 1px solid var(--jackpot-border);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(212, 175, 55, 0.14), transparent 60%),
+    var(--jackpot-bg);
+  color: #F5EFE0;
+  text-align: center;
+  animation: account-rise 0.45s var(--ease-out);
+}
+
+.account-card[hidden],
+.account-signed-in[hidden],
+.account-card .secondary-button[hidden] {
+  display: none;
+}
+
+.account-card__crest {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--jackpot-accent);
+  border-radius: 50%;
+  color: var(--jackpot-amount);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
+}
+
+.account-card__crest svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.account-card__title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.account-card__text {
+  max-width: 36ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #C9CEDA;
+}
+
+/* Google draws its own button inside; keep room so the card doesn't jump while it loads */
+.google-slot {
+  width: 100%;
+  max-width: 320px;
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* Nothing to show (still loading, blocked, or sign-in off): no empty gap */
+.google-slot:empty {
+  display: none;
+}
+
+.account-card__status {
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--jackpot-label);
+}
+
+.account-card__status--error {
+  color: #F0B4A8;
+}
+
+.account-card .secondary-button {
+  border-color: var(--jackpot-accent);
+  color: var(--jackpot-amount);
+}
+
+.account-card__fine {
+  max-width: 38ch;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--jackpot-label);
+}
+
+.account-signed-in {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: account-rise 0.45s var(--ease-out);
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--jackpot-border);
+  border-radius: var(--radius-large);
+  background: var(--jackpot-bg);
+  color: #F5EFE0;
+}
+
+.profile-card__avatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid var(--jackpot-accent);
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--jackpot-amount);
+}
+
+.profile-card__avatar img,
+.avatar-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-card__text {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-card__name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-card__email {
+  font-size: 13px;
+  color: var(--jackpot-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-badge {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #F2D676, #C9A227);
+  color: #1B1405;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-signed-in__signout {
+  align-self: flex-start;
+}
+
+.secondary-button[aria-busy="true"] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* Header avatar holds a photo, an initial, or the person icon */
+.avatar-button {
+  overflow: hidden;
+  padding: 0;
+}
+
+.avatar-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes account-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-card,
+  .account-signed-in {
+    animation: none;
+  }
+}

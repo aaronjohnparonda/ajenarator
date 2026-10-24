@@ -12,12 +12,19 @@
 const { createApp } = require('./app');
 const { pool, closePool } = require('./db/pool');
 const { createGameService } = require('./services/game-service');
+const { createAuthService } = require('./services/auth-service');
+const config = require('./config/env');
 
 const DEFAULT_PORT = 3000;
 const SHUTDOWN_TIMEOUT_MS = 10000;
 const port = Number(process.env.PORT) || DEFAULT_PORT;
 
-const app = createApp({ gameService: createGameService({ db: pool }) });
+const authService = config.auth ? createAuthService({ db: pool, ...config.auth }) : null;
+if (!authService) {
+  console.warn('Google sign-in is off: set GOOGLE_CLIENT_ID, OWNER_EMAILS and JWT_SECRET to turn it on.');
+}
+
+const app = createApp({ gameService: createGameService({ db: pool }), authService });
 
 const server = app.listen(port, () => {
   console.log(`AJenarator is running at http://localhost:${port}`);

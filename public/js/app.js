@@ -9,21 +9,35 @@ import { mountHomeScreen } from './screens/home.js';
 import { mountGenerateScreen } from './screens/generate.js';
 import { mountStatsScreen } from './screens/stats.js';
 import { mountResultsScreen } from './screens/results.js';
-import { mountComingSoon } from './screens/coming-soon.js';
+import { mountAccountScreen } from './screens/account.js';
+import { loadSession, subscribeSession, getSession, firstName } from './core/session.js';
+import { fillAvatar } from './ui/avatar.js';
 
 const GREETING_REFRESH_MS = 60000;
 
+/** "Good evening" or, when signed in, "Good evening, Aaron". */
 function initGreeting(element) {
   const update = () => {
-    element.textContent = greetingFor();
+    const name = firstName(getSession().user);
+    element.textContent = name ? `${greetingFor()}, ${name}` : greetingFor();
   };
   update();
   window.setInterval(update, GREETING_REFRESH_MS);
+  subscribeSession(update);
+}
+
+function initAvatar(button) {
+  subscribeSession(({ user }) => {
+    fillAvatar(button, user);
+    button.setAttribute('aria-label', user ? `Your account: ${user.name || user.email}` : 'Your account: sign in');
+  });
 }
 
 initThemeToggle(document.getElementById('theme-toggle'));
 initSoundToggle(document.getElementById('sound-toggle'));
 initGreeting(document.getElementById('greeting'));
+initAvatar(document.getElementById('avatar-button'));
+loadSession(api);
 
 createRouter({
   root: document.getElementById('screen-root'),
@@ -34,9 +48,6 @@ createRouter({
     generate: (root) => mountGenerateScreen(root, { api }),
     stats: (root) => mountStatsScreen(root, { api }),
     results: (root) => mountResultsScreen(root, { api }),
-    me: (root) => mountComingSoon(root, {
-      title: 'Your account arrives with Google sign-in',
-      text: 'Saved tickets and filter presets will live here.',
-    }),
+    me: (root) => mountAccountScreen(root, { api }),
   },
 });

@@ -65,6 +65,52 @@ function readCaCertificate(problems) {
   }
 }
 
+const AUTH_SETTINGS = ['GOOGLE_CLIENT_ID', 'OWNER_EMAILS', 'JWT_SECRET'];
+const MIN_JWT_SECRET_LENGTH = 32;
+const GOOGLE_CLIENT_ID_PATTERN = /^[\w-]+\.apps\.googleusercontent\.com$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Google sign-in settings. Optional as a group: scripts like the nightly fetch don't need them,
+ * and the website still runs (sign-in shows as unavailable). Setting only some of them is an error.
+ * @returns {null | {googleClientId, ownerEmails: string[], jwtSecret}}
+ */
+function readAuth(problems) {
+  const values = Object.fromEntries(AUTH_SETTINGS.map((name) => [name, (process.env[name] || '').trim()]));
+  const provided = AUTH_SETTINGS.filter((name) => values[name]);
+  if (provided.length === 0) {
+    return null;
+  }
+  if (provided.length < AUTH_SETTINGS.length) {
+    const missing = AUTH_SETTINGS.filter((name) => !values[name]);
+    problems.push(`Google sign-in is partly set up. Also set: ${missing.join(', ')} (or remove all three to turn sign-in off).`);
+    return null;
+  }
+
+  if (!GOOGLE_CLIENT_ID_PATTERN.test(values.GOOGLE_CLIENT_ID)) {
+    problems.push('GOOGLE_CLIENT_ID should end with .apps.googleusercontent.com.');
+  }
+
+  const ownerEmails = values.OWNER_EMAILS
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  const badEmails = ownerEmails.filter((email) => !EMAIL_PATTERN.test(email));
+  if (ownerEmails.length === 0 || badEmails.length > 0) {
+    problems.push('OWNER_EMAILS must be one or more email addresses separated by commas.');
+  }
+
+  if (values.JWT_SECRET.length < MIN_JWT_SECRET_LENGTH) {
+    problems.push(`JWT_SECRET must be at least ${MIN_JWT_SECRET_LENGTH} characters. Generate one with: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`);
+  }
+
+  return Object.freeze({
+    googleClientId: values.GOOGLE_CLIENT_ID,
+    ownerEmails: Object.freeze([...new Set(ownerEmails)]),
+    jwtSecret: values.JWT_SECRET,
+  });
+}
+
 function buildConfig() {
   loadEnvFileIfPresent();
 
@@ -79,6 +125,7 @@ function buildConfig() {
     database: readRequired('DB_NAME', missing),
     caCertificate: readCaCertificate(problems),
   };
+  const auth = readAuth(problems);
 
   if (missing.length > 0) {
     problems.unshift(`Missing settings: ${missing.join(', ')}. Copy .env.example to .env and fill them in.`);
@@ -91,6 +138,7 @@ function buildConfig() {
   return Object.freeze({
     projectRoot: PROJECT_ROOT,
     db: Object.freeze(db),
+    auth,
   });
 }
 
