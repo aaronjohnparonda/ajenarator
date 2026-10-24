@@ -5,6 +5,8 @@
   "private": true,
   "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
     "test": "node --test test/*.test.js",
     "db:check": "node scripts/db-check.js",
     "db:migrate": "node scripts/migrate.js",
@@ -22,6 +24,8 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
     "mysql2": "^3.24.6"
   }
 }

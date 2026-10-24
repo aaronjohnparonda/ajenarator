@@ -1,0 +1,125 @@
+.primary-button,
+.secondary-button {
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 28px;
+  border-radius: var(--radius-pill);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, background-color 0.3s ease, opacity 0.2s ease;
+}
+
+.primary-button {
+  width: 100%;
+  border: none;
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+.primary-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Generate stays reachable above the tab bar while picks scroll underneath */
+.screen--generate > .primary-button {
+  position: sticky;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 5;
+  box-shadow: 0 0 0 10px var(--bg);
+}
+
+@media (min-width: 900px) {
+  .screen--generate > .primary-button {
+    bottom: 24px;
+  }
+}
+
+.primary-button:active,
+.secondary-button:active {
+  transform: scale(0.97);
+}
+
+.primary-button[aria-busy="true"] {
+  background: color-mix(in srgb, var(--gold) 78%, var(--bg));
+  cursor: progress;
+}
+
+.primary-button[aria-busy="true"] svg {
+  animation: sparkle-spin 0.9s linear infinite;
+}
+
+@keyframes sparkle-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.secondary-button {
+  min-height: var(--tap);
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-text);
+  font-size: 15px;
+}
+
+/* Small round +/- buttons */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stepper__button {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-soft);
+  transition: transform 0.15s ease;
+}
+
+.stepper__button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.stepper__button:active {
+  transform: scale(0.9);
+}
+
+.stepper__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stepper__value {
+  min-width: 64px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 36px buttons still get a 44px touch area */
+@media (pointer: coarse) {
+  .stepper__button {
+    position: relative;
+  }
+
+  .stepper__button::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+}

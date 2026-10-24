@@ -1,0 +1,110 @@
+/*
+ * Design tokens: Midnight Gold.
+ * Dark is the default; light uses warm ivory and parchment (no pure white).
+ * The jackpot card stays dark navy in both themes (the "black card" touch).
+ */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0B0F1A;
+  --surface: #121829;
+  --surface-raised: #0F1424;
+  --border: #2A3247;
+  --border-soft: #222A3D;
+
+  --text: #F5EFE0;
+  --text-soft: #C9CEDA;
+  --text-muted: #A9B0C2;
+
+  --gold: #D4AF37;
+  --gold-text: #F2D676;
+  --on-gold: #1A1406;
+
+  --chip-bg: #121829;
+  --chip-border: #2A3247;
+  --chip-text: #C9CEDA;
+  --chip-active-bg: #D4AF37;
+  --chip-active-border: #D4AF37;
+  --chip-active-text: #1A1406;
+
+  --badge-bg: #1B2236;
+  --badge-text: #D6DAE4;
+  --badge-gold-bg: #2E2814;
+  --badge-gold-text: #F2D676;
+
+  --nav-bg: #0D1220;
+  --nav-border: #1E2538;
+  --nav-text: #8C93A6;
+  --nav-active: #D4AF37;
+
+  --focus-ring: #F2D676;
+  --toast-bg: #F5EFE0;
+  --toast-text: #1B1F2E;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #F4EEE2;
+  --surface: #FAF6EC;
+  --surface-raised: #FAF6EC;
+  --border: #DCCFB2;
+  --border-soft: #E3D8BF;
+
+  --text: #1B1F2E;
+  --text-soft: #3A3F4E;
+  --text-muted: #5B6070;
+
+  --gold: #C9A227;
+  --gold-text: #8A6A12;
+  --on-gold: #1A1406;
+
+  --chip-bg: #FAF6EC;
+  --chip-border: #DCCFB2;
+  --chip-text: #3A3F4E;
+  --chip-active-bg: #1B1F2E;
+  --chip-active-border: #1B1F2E;
+  --chip-active-text: #F2D676;
+
+  --badge-bg: #EDE5D3;
+  --badge-text: #3A3F4E;
+  --badge-gold-bg: #F1E2B0;
+  --badge-gold-text: #5E470A;
+
+  --nav-bg: #EEE7D8;
+  --nav-border: #E0D5BC;
+  --nav-text: #5E6372;
+  --nav-active: #7A5C0E;
+
+  --focus-ring: #8A6A12;
+  --toast-bg: #1B1F2E;
+  --toast-text: #F5EFE0;
+}
+
+:root {
+  /* Same in both themes */
+  --jackpot-bg: #141A2B;
+  --jackpot-border: #3A3320;
+  --jackpot-label: #A9B0C2;
+  --jackpot-amount: #F2D676;
+  --jackpot-accent: #D4AF37;
+
+  --ball-gradient: radial-gradient(circle at 35% 30%, #FFF4C7, #D4AF37 55%, #8A6A12);
+  --ball-text: #1A1406;
+
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-body: Manrope, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-pill: 999px;
+  --radius-card: 20px;
+  --radius-large: 22px;
+
+  --nav-width: 232px;
+  --content-max: 640px;
+  --tap: 44px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}

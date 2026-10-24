@@ -1,0 +1,92 @@
+.picks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.picks-header__title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.picks-coverage {
+  margin-top: -10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.picks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pick-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.pick-card__balls {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+/* Wider screens: keep the six balls together instead of spreading across the card */
+@media (min-width: 520px) {
+  .pick-card__balls {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+}
+
+.pick-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge--gold {
+  background: var(--badge-gold-bg);
+  color: var(--badge-gold-text);
+}
+
+.badge--appear {
+  opacity: 0;
+  animation: badge-appear 0.35s var(--ease-out) var(--delay, 0ms) forwards;
+}
+
+@keyframes badge-appear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge--appear {
+    animation-duration: 0.01ms;
+  }
+}

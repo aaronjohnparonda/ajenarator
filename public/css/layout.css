@@ -1,0 +1,138 @@
+/*
+ * App shell.
+ * Phones and small tablets: content plus a bottom tab bar.
+ * 900px and wider: a sidebar on the left and centered content.
+ */
+
+.app-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-main {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 20px calc(96px + env(safe-area-inset-bottom));
+}
+
+.screen-root {
+  outline: none;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: screen-enter 0.35s var(--ease-out);
+}
+
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Navigation: bottom tab bar by default */
+.app-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  padding: 8px 6px calc(10px + env(safe-area-inset-bottom));
+  background: var(--nav-bg);
+  border-top: 1px solid var(--nav-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.app-nav__brand {
+  display: none;
+}
+
+.app-nav__item {
+  flex: 1 1 0;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 14px;
+  color: var(--nav-text);
+  font-size: 11px;
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.app-nav__item:active {
+  transform: scale(0.94);
+}
+
+.app-nav__item[aria-current="page"] {
+  color: var(--nav-active);
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .app-shell {
+    display: flex;
+  }
+
+  .app-nav {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    right: auto;
+    flex-direction: column;
+    gap: 4px;
+    width: var(--nav-width);
+    height: 100vh;
+    padding: 28px 16px;
+    border-top: none;
+    border-right: 1px solid var(--nav-border);
+  }
+
+  .app-nav__brand {
+    display: block;
+    margin: 0 12px 24px;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .app-nav__item {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 14px;
+    font-size: 15px;
+  }
+
+  .app-nav__item:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .app-nav__item[aria-current="page"] {
+    background: var(--surface);
+  }
+
+  .app-main {
+    flex: 1 1 auto;
+    padding: 0 32px 48px;
+  }
+
+  .app-header__brand {
+    display: none;
+  }
+}

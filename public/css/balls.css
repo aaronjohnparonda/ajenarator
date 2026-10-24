@@ -1,0 +1,92 @@
+/*
+ * Gold lotto balls and the "golden ball drop" reveal.
+ * Each ball gets --delay (set by JavaScript) so balls land one after another.
+ */
+
+.ball {
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ball-gradient);
+  color: var(--ball-text);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ball--dropping {
+  opacity: 0;
+  animation: ball-drop 0.62s var(--ease-bounce) var(--delay, 0ms) forwards;
+}
+
+@keyframes ball-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-44px) scale(0.6) rotate(-90deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.05) rotate(10deg);
+  }
+  75% {
+    transform: translateY(-4px) scale(0.98) rotate(-4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Soft gold sparkle ring when a whole pick has landed */
+.pick-card--sparkle {
+  position: relative;
+}
+
+.pick-card--sparkle::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 2px solid var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  animation: sparkle-ring 0.9s var(--ease-out) var(--sparkle-delay, 0ms) forwards;
+}
+
+@keyframes sparkle-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+@media (max-width: 360px) {
+  .ball {
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ball--dropping {
+    animation: ball-fade 0.2s ease var(--delay, 0ms) forwards;
+  }
+
+  .pick-card--sparkle::after {
+    animation: none;
+  }
+
+  @keyframes ball-fade {
+    to {
+      opacity: 1;
+    }
+  }
+}

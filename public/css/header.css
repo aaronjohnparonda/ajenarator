@@ -1,0 +1,76 @@
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: calc(20px + env(safe-area-inset-top)) 0 18px;
+}
+
+.app-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-header__greeting {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.app-header__brand {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-button,
+.avatar-button {
+  width: var(--tap);
+  height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.15s ease;
+}
+
+.icon-button {
+  border: 1px solid var(--border);
+  color: var(--gold-text);
+  padding: 0;
+}
+
+.icon-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-button:active,
+.avatar-button:active {
+  transform: scale(0.92);
+}
+
+.avatar-button {
+  border: 1px solid var(--gold);
+  color: var(--gold-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* Show only the icon that matches the current state */
+[data-theme="dark"] .icon-sun,
+[data-theme="light"] .icon-moon,
+#sound-toggle[aria-pressed="false"] .icon-sound-on,
+#sound-toggle[aria-pressed="true"] .icon-sound-off {
+  display: none;
+}
