@@ -71,17 +71,28 @@
   display: flex;
   justify-content: center;
   margin-top: 4px;
+  /* Google's button is a light-mode iframe. If our dark color-scheme differs from it, the
+     browser paints an opaque white box behind it; matching it keeps the background clear. */
+  color-scheme: light;
 }
 
-/* Nothing to show (still loading, blocked, or sign-in off): no empty gap */
+/* Nothing to show (still loading, blocked, or sign-in off): take no height, but keep the
+   slot laid out so its width can be measured before Google draws the button into it. */
 .google-slot:empty {
-  display: none;
+  min-height: 0;
+  margin-top: -14px; /* cancel the card's gap so no empty space shows */
 }
 
 .account-card__status {
   min-height: 20px;
   font-size: 14px;
   color: var(--jackpot-label);
+}
+
+/* No message: no blank line under the button (kept in the layout for screen-reader updates) */
+.account-card__status:empty {
+  min-height: 0;
+  margin-top: -14px;
 }
 
 .account-card__status--error {

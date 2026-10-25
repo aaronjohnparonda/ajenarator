@@ -7,10 +7,63 @@
 const GIS_SCRIPT_URL = 'https://accounts.google.com/gsi/client';
 const LOAD_TIMEOUT_MS = 15000;
 const BUTTON_MAX_WIDTH = 320;
+const BUTTON_MIN_WIDTH = 200;
+const RESIZE_THRESHOLD_PX = 24;
+const RESIZE_DEBOUNCE_MS = 150;
 
 let scriptPromise = null;
 let initializedClientId = null;
 let currentCredentialHandler = null;
+let resizeObserver = null;
+
+/** Google draws the button at a fixed pixel width, so fit it to the space available now. */
+function buttonWidthFor(container) {
+  const available = Math.floor(container.clientWidth || BUTTON_MAX_WIDTH);
+  return Math.min(BUTTON_MAX_WIDTH, Math.max(BUTTON_MIN_WIDTH, available));
+}
+
+/** Draws the button and returns the width it was drawn at. */
+function drawButton(container) {
+  const width = buttonWidthFor(container); // measure before Google's content changes the box
+  container.replaceChildren();
+  window.google.accounts.id.renderButton(container, {
+    type: 'standard',
+    // White button: the sign-in card is dark navy in both themes, so this has the best contrast.
+    theme: 'outline',
+    size: 'large',
+    shape: 'pill',
+    text: 'signin_with',
+    logo_alignment: 'left',
+    width,
+  });
+  return width;
+}
+
+/** Redraws the button when its space changes noticeably (phone rotation, window resize). */
+function watchWidth(container, drawnWidth) {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+  if (typeof ResizeObserver !== 'function') {
+    return;
+  }
+  let lastWidth = drawnWidth;
+  let timer = null;
+  resizeObserver = new ResizeObserver(() => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      if (!container.isConnected) {
+        resizeObserver.disconnect();
+        return;
+      }
+      const width = buttonWidthFor(container);
+      if (Math.abs(width - lastWidth) >= RESIZE_THRESHOLD_PX) {
+        lastWidth = drawButton(container);
+      }
+    }, RESIZE_DEBOUNCE_MS);
+  });
+  resizeObserver.observe(container);
+}
 
 function loadScript() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
@@ -63,17 +116,7 @@ export async function renderGoogleButton(container, { clientId, onCredential }) 
     initializedClientId = clientId;
   }
 
-  container.replaceChildren();
-  accounts.renderButton(container, {
-    type: 'standard',
-    // White button: the sign-in card is dark navy in both themes, so this has the best contrast.
-    theme: 'outline',
-    size: 'large',
-    shape: 'pill',
-    text: 'signin_with',
-    logo_alignment: 'left',
-    width: Math.min(BUTTON_MAX_WIDTH, Math.max(200, Math.floor(container.clientWidth || BUTTON_MAX_WIDTH))),
-  });
+  watchWidth(container, drawButton(container));
 }
 
 /** Stops Google from silently re-selecting the account after sign-out. */
@@ -85,4 +128,8 @@ export function forgetGoogleSelection() {
 
 export function stopListening() {
   currentCredentialHandler = null;
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
 }
