@@ -2,18 +2,35 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const crypto = require('node:crypto');
 const { resolveFilters } = require('../src/engine/filters');
 const { runBacktest, wilsonInterval } = require('../src/engine/backtest');
 
 const GAME = { code: '6/42', maxNumber: 42 };
 
-function randomDraws(count) {
+/**
+ * Small seeded random generator (mulberry32), so the "random" draws are the same on every run.
+ * Truly random draws made this test fail about 1 run in 20: the verdict uses a 95% confidence
+ * range, so 5% of honest random histories land outside it by chance. That is expected
+ * statistics, not a bug, but a test must not depend on luck.
+ */
+function seededRandom(seed) {
+  let state = seed >>> 0;
+  return function next() {
+    state = (state + 0x6D2B79F5) >>> 0;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function randomDraws(count, seed = 20261025) {
+  const random = seededRandom(seed);
   const draws = [];
   for (let index = 0; index < count; index += 1) {
     const chosen = new Set();
     while (chosen.size < 6) {
-      chosen.add(1 + crypto.randomInt(42));
+      chosen.add(1 + Math.floor(random() * 42));
     }
     const day = new Date(Date.UTC(2016, 0, 1) + index * 86400000).toISOString().slice(0, 10);
     draws.push({ drawDate: day, numbers: [...chosen].sort((a, b) => a - b) });
@@ -26,6 +43,14 @@ test('random draws show no edge: kept share of winners matches kept share of all
   assert.equal(result.totalDraws, 3000);
   assert.ok(Math.abs(result.keptShareOfWinners - 0.796) < 0.04);
   assert.match(result.verdict, /^No edge/);
+});
+
+test('seeded draws are repeatable and use every number fairly', () => {
+  assert.deepEqual(randomDraws(50), randomDraws(50));
+  const counts = new Array(43).fill(0);
+  randomDraws(3000).forEach((draw) => draw.numbers.forEach((number) => { counts[number] += 1; }));
+  const expected = (3000 * 6) / 42;
+  counts.slice(1).forEach((count) => assert.ok(Math.abs(count - expected) < expected * 0.15));
 });
 
 test('a repeated winner is only compared with EARLIER draws', () => {
