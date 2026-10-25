@@ -111,6 +111,30 @@ function readAuth(problems) {
   });
 }
 
+const MAX_PROXY_HOPS = 5;
+
+/**
+ * Hosting settings (optional):
+ *   TRUST_PROXY_HOPS  how many proxies sit in front of the app (default 1). Used to read each
+ *                     visitor's real IP for rate limits. Measure it with SHOW_IP_CHECK, don't guess.
+ *   SHOW_IP_CHECK     "true" temporarily enables GET /api/v1/ip-check for that measurement.
+ */
+function readHosting(problems) {
+  const rawHops = (process.env.TRUST_PROXY_HOPS || '').trim();
+  let trustProxyHops = 1;
+  if (rawHops) {
+    trustProxyHops = Number(rawHops);
+    if (!Number.isInteger(trustProxyHops) || trustProxyHops < 0 || trustProxyHops > MAX_PROXY_HOPS) {
+      problems.push(`TRUST_PROXY_HOPS must be a whole number from 0 to ${MAX_PROXY_HOPS} (got "${rawHops}").`);
+      trustProxyHops = 1;
+    }
+  }
+  return Object.freeze({
+    trustProxyHops,
+    showIpCheck: (process.env.SHOW_IP_CHECK || '').trim().toLowerCase() === 'true',
+  });
+}
+
 function buildConfig() {
   loadEnvFileIfPresent();
 
@@ -126,6 +150,7 @@ function buildConfig() {
     caCertificate: readCaCertificate(problems),
   };
   const auth = readAuth(problems);
+  const hosting = readHosting(problems);
 
   if (missing.length > 0) {
     problems.unshift(`Missing settings: ${missing.join(', ')}. Copy .env.example to .env and fill them in.`);
@@ -139,6 +164,7 @@ function buildConfig() {
     projectRoot: PROJECT_ROOT,
     db: Object.freeze(db),
     auth,
+    hosting,
   });
 }
 

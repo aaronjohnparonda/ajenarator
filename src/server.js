@@ -28,7 +28,15 @@ if (!authService) {
 // My Picks belong to a signed-in owner, so they are only available when sign-in is on.
 const pickService = authService ? createPickService({ db: pool }) : null;
 
-const app = createApp({ gameService: createGameService({ db: pool }), authService, pickService });
+const app = createApp({
+  gameService: createGameService({ db: pool }),
+  authService,
+  pickService,
+  hosting: config.hosting,
+});
+if (config.hosting.showIpCheck) {
+  console.warn('SHOW_IP_CHECK is on: /api/v1/ip-check is public. Turn it off after measuring.');
+}
 
 const server = app.listen(port, () => {
   console.log(`AJenarator is running at http://localhost:${port}`);

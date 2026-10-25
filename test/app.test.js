@@ -57,3 +57,22 @@ test('serves the stylesheet and scripts', async () => {
     assert.equal(response.status, 200, file);
   }
 });
+
+test('ip-check is off by default and reports the proxy-resolved IP when on', async () => {
+  const { createApp: build } = require('../src/app');
+  const off = build().listen(0);
+  await new Promise((resolve) => off.once('listening', resolve));
+  let response = await fetch(`http://127.0.0.1:${off.address().port}/api/v1/ip-check`);
+  assert.equal(response.status, 404);
+  await new Promise((resolve) => off.close(resolve));
+
+  const on = build({ hosting: { trustProxyHops: 2, showIpCheck: true } }).listen(0);
+  await new Promise((resolve) => on.once('listening', resolve));
+  response = await fetch(`http://127.0.0.1:${on.address().port}/api/v1/ip-check`, {
+    headers: { 'X-Forwarded-For': '203.0.113.7, 10.0.0.2' },
+  });
+  const body = await response.json();
+  assert.equal(body.data.seenIp, '203.0.113.7');
+  assert.equal(body.data.trustProxyHops, 2);
+  await new Promise((resolve) => on.close(resolve));
+});

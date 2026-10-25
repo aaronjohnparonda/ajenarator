@@ -34,12 +34,14 @@ function sendError(res, status, code, message) {
  * @param {object} [dependencies.gameService] - from createGameService(); tests pass a stand-in
  * @param {object} [dependencies.authService] - from createAuthService(); omitted = sign-in off
  * @param {object} [dependencies.pickService] - from createPickService(); needs sign-in
+ * @param {object} [dependencies.hosting] - { trustProxyHops, showIpCheck } from config
  */
-function createApp({ gameService, authService, pickService } = {}) {
+function createApp({ gameService, authService, pickService, hosting = {} } = {}) {
+  const { trustProxyHops = 1, showIpCheck = false } = hosting;
   const app = express();
   app.disable('x-powered-by');
-  // Render (and most hosts) put one proxy in front of the app; needed for correct client IPs.
-  app.set('trust proxy', 1);
+  // Number of proxies in front of the app (host-specific), so req.ip is the visitor's real IP.
+  app.set('trust proxy', trustProxyHops);
 
   app.use(helmet({
     contentSecurityPolicy: {
@@ -68,6 +70,18 @@ function createApp({ gameService, authService, pickService } = {}) {
   app.get('/api/v1/health', (req, res) => {
     res.json({ success: true, data: { status: 'ok' } });
   });
+
+  // TEMPORARY measuring aid (off unless SHOW_IP_CHECK=true): shows the IP the app sees for you
+  // and the proxy chain, to set TRUST_PROXY_HOPS correctly. Turn it off again afterwards.
+  if (showIpCheck) {
+    app.get('/api/v1/ip-check', (req, res) => {
+      res.set('Cache-Control', 'no-store');
+      res.json({
+        success: true,
+        data: { seenIp: req.ip, trustProxyHops, forwardedFor: req.get('x-forwarded-for') || null },
+      });
+    });
+  }
 
   app.use('/api', requireSameOrigin, createAttachUser(authService));
   app.use('/api/v1/auth', createAuthRouter({ authService }));
