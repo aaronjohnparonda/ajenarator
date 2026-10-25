@@ -1,6 +1,5 @@
 /**
- * Me screen: owner sign-in with Google, and the signed-in profile with sign-out.
- * My Picks will be added here in the next step.
+ * Me screen: owner sign-in with Google, and when signed in: profile, My Picks and sign-out.
  */
 
 import { cloneTemplate } from '../ui/dom.js';
@@ -10,6 +9,8 @@ import { renderGoogleButton, forgetGoogleSelection, stopListening } from '../ui/
 import { subscribeSession, completeSignIn, signOutSession, firstName, loadSession } from '../core/session.js';
 import { playChime } from '../core/sound.js';
 import { vibrate } from '../core/haptics.js';
+import { mountMyPicks } from '../ui/my-picks.js';
+import { resetResultsCheck } from '../ui/results-popup.js';
 
 const MESSAGES = {
   loading: 'Loading sign-in…',
@@ -27,6 +28,7 @@ export function mountAccountScreen(root, { api }) {
   let destroyed = false;
   let renderedFor = null; // which state the Google button was rendered for
   let busy = false;
+  let myPicks = null;
 
   function setStatus(message, isError = false) {
     refs.status.textContent = message;
@@ -79,9 +81,17 @@ export function mountAccountScreen(root, { api }) {
     refs.name.textContent = user.name || firstName(user);
     refs.email.textContent = user.email;
     renderedFor = null;
+    if (!myPicks) {
+      myPicks = mountMyPicks(refs.myPicks, { api });
+    }
   }
 
   function renderSignedOut(session) {
+    if (myPicks) {
+      myPicks.destroy();
+      myPicks = null;
+      refs.myPicks.replaceChildren();
+    }
     refs.signedIn.hidden = true;
     refs.signedOut.hidden = false;
     refs.retry.hidden = true;
@@ -126,6 +136,7 @@ export function mountAccountScreen(root, { api }) {
     try {
       await signOutSession(api);
       forgetGoogleSelection();
+      resetResultsCheck();
       showToast('Signed out');
       announce('Signed out.');
     } catch (error) {
@@ -142,6 +153,9 @@ export function mountAccountScreen(root, { api }) {
       destroyed = true;
       unsubscribe();
       stopListening();
+      if (myPicks) {
+        myPicks.destroy();
+      }
     },
   };
 }

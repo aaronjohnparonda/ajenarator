@@ -12,6 +12,7 @@ import { mountResultsScreen } from './screens/results.js';
 import { mountAccountScreen } from './screens/account.js';
 import { loadSession, subscribeSession, getSession, firstName } from './core/session.js';
 import { fillAvatar } from './ui/avatar.js';
+import { showNewResults } from './ui/results-popup.js';
 
 const GREETING_REFRESH_MS = 60000;
 
@@ -38,6 +39,12 @@ initSoundToggle(document.getElementById('sound-toggle'));
 initGreeting(document.getElementById('greeting'));
 initAvatar(document.getElementById('avatar-button'));
 loadSession(api);
+// When signed in, show any pick results that came in since the last visit.
+subscribeSession(({ user }) => {
+  if (user) {
+    showNewResults({ api, user });
+  }
+});
 
 createRouter({
   root: document.getElementById('screen-root'),

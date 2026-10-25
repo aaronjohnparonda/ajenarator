@@ -16,6 +16,7 @@ const express = require('express');
 const helmet = require('helmet');
 const { createApiRouter } = require('./routes/api');
 const { createAuthRouter } = require('./routes/auth');
+const { createPicksRouter } = require('./routes/picks');
 const { createAttachUser, requireSameOrigin } = require('./middleware/session');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -32,8 +33,9 @@ function sendError(res, status, code, message) {
  * @param {object} [dependencies]
  * @param {object} [dependencies.gameService] - from createGameService(); tests pass a stand-in
  * @param {object} [dependencies.authService] - from createAuthService(); omitted = sign-in off
+ * @param {object} [dependencies.pickService] - from createPickService(); needs sign-in
  */
-function createApp({ gameService, authService } = {}) {
+function createApp({ gameService, authService, pickService } = {}) {
   const app = express();
   app.disable('x-powered-by');
   // Render (and most hosts) put one proxy in front of the app; needed for correct client IPs.
@@ -69,6 +71,9 @@ function createApp({ gameService, authService } = {}) {
 
   app.use('/api', requireSameOrigin, createAttachUser(authService));
   app.use('/api/v1/auth', createAuthRouter({ authService }));
+  if (pickService) {
+    app.use('/api/v1/picks', createPicksRouter({ pickService }));
+  }
 
   if (gameService) {
     app.use('/api/v1', createApiRouter({ gameService }));

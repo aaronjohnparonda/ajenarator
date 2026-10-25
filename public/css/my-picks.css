@@ -1,0 +1,297 @@
+/* My Picks: next draws, history rows, lock-in panel, results pop-up */
+
+.my-picks,
+.my-picks__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-picks__content[hidden],
+.my-picks__loading[hidden],
+.upcoming-row__actions[hidden],
+.upcoming-row__balls[hidden],
+.pick-card__actions[hidden],
+.history-row__winning[hidden],
+.pick-sheet__step[hidden],
+.panel__note[hidden] {
+  display: none;
+}
+
+.my-picks__loading {
+  padding: 18px;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Next draws */
+.upcoming-list,
+.pick-history {
+  display: flex;
+  flex-direction: column;
+}
+
+.upcoming-row,
+.history-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+}
+
+.upcoming-row + .upcoming-row,
+.history-row + .history-row {
+  border-top: 1px solid var(--border-soft);
+}
+
+.upcoming-row:first-child,
+.history-row:first-child {
+  padding-top: 4px;
+}
+
+.upcoming-row__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.upcoming-row__titles {
+  min-width: 0;
+}
+
+.upcoming-row__game {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.upcoming-row__when {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.upcoming-row__balls,
+.history-row__balls,
+.pick-sheet__balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.upcoming-row__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.upcoming-row__actions .secondary-button {
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+/* History */
+.history-row__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.history-row__game {
+  font-weight: 700;
+}
+
+.history-row__date {
+  color: var(--text-muted);
+}
+
+.history-row__status {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.history-row__status--hit {
+  color: var(--gold-text);
+}
+
+.history-row__winning {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Matched balls stay gold with a soft glow; misses are hollow */
+.ball--hit {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 35%, transparent);
+}
+
+.history-row .ball--hit,
+.result-dialog .ball--hit {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 55%, transparent);
+}
+
+.ball--miss {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+/* "Make this my pick" on generated cards */
+.pick-card__actions {
+  display: flex;
+  padding-top: 2px;
+}
+
+.pick-card__lock {
+  width: 100%;
+  font-size: 14px;
+}
+
+.pick-card__lock:disabled,
+.secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Lock-in panel */
+.pick-sheet__count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.pick-sheet__confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.pick-sheet__balls {
+  justify-content: center;
+  gap: 8px;
+}
+
+.pick-sheet__draw {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pick-sheet__final {
+  max-width: 34ch;
+  padding: 12px 14px;
+  border: 1px solid var(--jackpot-border);
+  border-radius: 14px;
+  background: var(--badge-gold-bg);
+  color: var(--badge-gold-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pick-sheet__lock {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Results pop-up: a centered card */
+.result-dialog {
+  width: min(92vw, 440px);
+  max-height: 88dvh;
+  padding: 0;
+  border: 1px solid var(--jackpot-border);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(212, 175, 55, 0.16), transparent 60%),
+    var(--jackpot-bg);
+  color: #F5EFE0;
+  overflow: hidden;
+}
+
+.result-dialog[open] {
+  display: flex;
+  animation: result-pop 0.4s var(--ease-out);
+}
+
+.result-dialog::backdrop {
+  background: rgba(5, 8, 15, 0.7);
+}
+
+.result-dialog__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 24px 20px 20px;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.result-dialog__title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.result-dialog__text {
+  font-size: 14px;
+  color: #C9CEDA;
+}
+
+.result-dialog__list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+}
+
+.result-dialog .history-row + .history-row {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.result-dialog .history-row__date,
+.result-dialog .history-row__winning {
+  color: var(--jackpot-label);
+}
+
+.result-dialog .history-row__status {
+  color: #F5EFE0;
+}
+
+.result-dialog .history-row__status--hit {
+  color: var(--jackpot-amount);
+}
+
+.result-dialog .ball--miss {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--jackpot-label);
+}
+
+@keyframes result-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-dialog[open] {
+    animation: none;
+  }
+}

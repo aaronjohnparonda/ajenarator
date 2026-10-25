@@ -16,7 +16,7 @@ export class ApiError extends Error {
 
   /** True when the message is written for people (validation, limits, sign-in) and safe to show as-is. */
   get isUserFacing() {
-    return [401, 403, 404, 422, 429, 503].includes(this.status) && this.code !== 'BAD_RESPONSE';
+    return [401, 403, 404, 409, 422, 429, 503].includes(this.status) && this.code !== 'BAD_RESPONSE';
   }
 }
 
@@ -111,4 +111,31 @@ export async function signInWithGoogle(credential) {
 
 export async function signOut() {
   return request('/auth/logout', { method: 'POST', body: {} });
+}
+
+/** Next pickable draw per game with the saved pick (owner only). */
+export async function fetchUpcomingPicks() {
+  const data = await request('/picks/upcoming');
+  return data.draws;
+}
+
+/** Saves a final pick. @returns the saved pick with its status */
+export async function savePick({ gameCode, drawDate, numbers, source }) {
+  const data = await request('/picks', { method: 'POST', body: { gameCode, drawDate, numbers, source } });
+  return data.pick;
+}
+
+/** One page of pick history with results, newest first. */
+export async function fetchPickHistory({ page = 1, limit = 10 } = {}) {
+  return request(`/picks?${new URLSearchParams({ page: String(page), limit: String(limit) })}`);
+}
+
+/** { record, unseen } - personal record and results not shown yet. */
+export async function fetchPickSummary() {
+  return request('/picks/summary');
+}
+
+/** Dismisses results from the pop-up. */
+export async function markPicksSeen(ids) {
+  return request('/picks/seen', { method: 'POST', body: { ids } });
 }

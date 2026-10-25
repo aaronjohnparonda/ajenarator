@@ -16,6 +16,8 @@ import { loadFilters, saveFilters, countChanges } from '../lib/filters-store.js'
 import { playClick, playChime } from '../core/sound.js';
 import { vibrate } from '../core/haptics.js';
 import { nextDraw, drawDayLabel, formatDrawTime, formatCountdown } from '../lib/draw-schedule.js';
+import { subscribeSession } from '../core/session.js';
+import { openPickSheet } from '../ui/pick-sheet.js';
 import {
   formatPeso, formatNumber, pad2, totalCombinations, formatDrawDate, formatWinners,
 } from '../lib/format.js';
@@ -53,9 +55,72 @@ export function mountGenerateScreen(root, { api }) {
     coverageShare: null,
     countdownTimer: null,
     finishTimer: null,
+    upcoming: null, // Map gameCode -> next pickable draw (signed in only)
+    lockButtons: [], // { button, numbers } on the current pick cards
+    destroyed: false,
   };
 
+  // ---- My Picks: "Make this my pick" on generated cards (only when signed in) ----
+
+  function upcomingForGame() {
+    return state.upcoming && state.game ? state.upcoming.get(state.game.code) || null : null;
+  }
+
+  function refreshLockButtons() {
+    const entry = upcomingForGame();
+    state.lockButtons.forEach(({ button }) => {
+      const container = button.parentElement;
+      if (!entry) {
+        container.hidden = true;
+        return;
+      }
+      container.hidden = false;
+      if (entry.pick) {
+        button.disabled = true;
+        button.textContent = `Pick locked in for ${formatDrawDate(entry.drawDate)}`;
+      } else {
+        button.disabled = false;
+        button.textContent = `Make this my pick · ${formatDrawDate(entry.drawDate)}`;
+      }
+    });
+  }
+
+  async function loadUpcoming() {
+    try {
+      const draws = await api.fetchUpcomingPicks();
+      if (!state.destroyed) {
+        state.upcoming = new Map(draws.map((entry) => [entry.gameCode, entry]));
+        refreshLockButtons();
+      }
+    } catch {
+      state.upcoming = null; // quietly hide the buttons; generating still works
+      refreshLockButtons();
+    }
+  }
+
+  function lockInPick(numbers, button) {
+    const entry = upcomingForGame();
+    if (!entry || entry.pick) {
+      return;
+    }
+    openPickSheet({
+      target: entry,
+      numbers,
+      source: 'generator',
+      api,
+      opener: button,
+      onSaved(pick) {
+        entry.pick = pick;
+        refreshLockButtons();
+        showToast(`Locked in for ${formatDrawDate(entry.drawDate)}. Good luck!`);
+        announce('Pick locked in.');
+      },
+      onClosedDraw: () => loadUpcoming(),
+    });
+  }
+
   function showEmptyPicks() {
+    state.lockButtons = [];
     refs.picks.replaceChildren(cloneTemplate('tpl-empty-picks').fragment);
   }
 
@@ -200,6 +265,12 @@ export function mountGenerateScreen(root, { api }) {
       cardRefs.badges.append(badge);
     });
 
+    const lockButton = createElement('button', 'secondary-button pick-card__lock', 'Make this my pick');
+    lockButton.type = 'button';
+    lockButton.addEventListener('click', () => lockInPick(pick.numbers, lockButton));
+    cardRefs.actions.append(lockButton);
+    state.lockButtons.push({ button: lockButton, numbers: pick.numbers });
+
     card.classList.add('pick-card--sparkle');
     card.style.setProperty('--sparkle-delay', `${Math.round(lastLanding + 120)}ms`);
     card.setAttribute('aria-label', `Pick ${pickIndex + 1}: ${pick.numbers.join(', ')}`);
@@ -212,12 +283,14 @@ export function mountGenerateScreen(root, { api }) {
       : { pick: PICK_STAGGER_MS, ball: BALL_STAGGER_MS };
 
     let finishesAt = 0;
+    state.lockButtons = [];
     const cards = picks.map((pick, index) => {
       const built = buildPickCard(pick, index, staggers);
       finishesAt = Math.max(finishesAt, built.finishesAt);
       return built.fragment;
     });
     refs.picks.replaceChildren(...cards);
+    refreshLockButtons();
     playChime(finishesAt);
     return finishesAt;
   }
@@ -281,8 +354,19 @@ export function mountGenerateScreen(root, { api }) {
 
   load();
 
+  const unsubscribeSession = subscribeSession(({ user }) => {
+    if (user) {
+      loadUpcoming();
+    } else {
+      state.upcoming = null;
+      refreshLockButtons();
+    }
+  });
+
   return {
     destroy() {
+      state.destroyed = true;
+      unsubscribeSession();
       window.clearInterval(state.countdownTimer);
       window.clearTimeout(state.finishTimer);
     },

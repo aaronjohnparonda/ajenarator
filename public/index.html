@@ -120,6 +120,7 @@
     <article class="pick-card">
       <div class="pick-card__balls" data-ref="balls"></div>
       <div class="pick-card__badges" data-ref="badges"></div>
+      <div class="pick-card__actions" data-ref="actions" hidden></div>
     </article>
   </template>
 
@@ -406,16 +407,133 @@
           </div>
           <span class="owner-badge">Owner</span>
         </div>
-        <div class="panel">
-          <div class="panel__header">
-            <h2 class="panel__title">My Picks</h2>
-            <p class="panel__caption">Coming next: choose one combination per game for each draw, then compare it with the official result.</p>
-          </div>
-        </div>
+        <div data-ref="myPicks"></div>
         <button class="secondary-button account-signed-in__signout" type="button" data-ref="signOut">Sign out</button>
       </div>
     </section>
   </template>
 
+  <template id="tpl-my-picks">
+    <div class="my-picks">
+      <p class="my-picks__loading" data-ref="loading" role="status">Loading your picks…</p>
+      <div class="my-picks__content" data-ref="content" hidden>
+        <section class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">My Picks · next draws</h2>
+            <p class="panel__caption">One pick per game for its next draw. Picks close at 8:00 PM and are final once locked in.</p>
+          </div>
+          <div class="upcoming-list" data-ref="upcoming"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">Your record</h2>
+          </div>
+          <div class="metric-row">
+            <div class="metric-card">
+              <span class="metric-card__label">Picks</span>
+              <span class="metric-card__value" data-ref="totalPicks">0</span>
+              <span class="metric-card__hint" data-ref="settledHint"></span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-card__label">Best match</span>
+              <span class="metric-card__value" data-ref="bestMatch">—</span>
+              <span class="metric-card__hint">of 6 numbers</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-card__label">3+ matched</span>
+              <span class="metric-card__value" data-ref="threeOrMore">0</span>
+              <span class="metric-card__hint">times</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel__header">
+            <h2 class="panel__title">History</h2>
+          </div>
+          <p class="panel__note" data-ref="historyEmpty" hidden>No picks yet. Lock in your first one above.</p>
+          <div class="pick-history" data-ref="history"></div>
+          <button class="secondary-button load-more" type="button" data-ref="more" hidden>Load more</button>
+        </section>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-upcoming-row">
+    <article class="upcoming-row">
+      <div class="upcoming-row__top">
+        <div class="upcoming-row__titles">
+          <p class="upcoming-row__game" data-ref="game"></p>
+          <p class="upcoming-row__when" data-ref="when"></p>
+        </div>
+        <span class="status-pill" data-ref="pill"></span>
+      </div>
+      <div class="upcoming-row__balls" data-ref="balls"></div>
+      <div class="upcoming-row__actions" data-ref="actions">
+        <button class="secondary-button" type="button" data-ref="choose">Choose numbers</button>
+        <a class="secondary-button" href="#/generate" data-ref="generate">Use generator</a>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-history-row">
+    <article class="history-row">
+      <div class="history-row__top">
+        <span class="history-row__game" data-ref="game"></span>
+        <span class="history-row__date" data-ref="date"></span>
+      </div>
+      <div class="history-row__balls" data-ref="balls"></div>
+      <p class="history-row__status" data-ref="status"></p>
+      <p class="history-row__winning" data-ref="winning"></p>
+    </article>
+  </template>
+
+  <template id="tpl-pick-sheet">
+    <dialog class="sheet pick-sheet" aria-labelledby="pick-sheet-title">
+      <div class="sheet__inner">
+        <header class="sheet__header">
+          <div class="sheet__titles">
+            <h2 class="sheet__title" id="pick-sheet-title">Lock in your pick</h2>
+            <span class="sheet__subtitle" data-ref="subtitle"></span>
+          </div>
+          <button class="icon-button" type="button" data-ref="close" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <div class="sheet__body">
+          <div class="pick-sheet__step" data-ref="chooseStep">
+            <p class="pick-sheet__count" data-ref="count" aria-live="polite"></p>
+            <div class="number-picker" data-ref="grid" role="group" aria-label="Choose 6 numbers"></div>
+          </div>
+          <div class="pick-sheet__step pick-sheet__confirm" data-ref="confirmStep" hidden>
+            <div class="pick-sheet__balls" data-ref="balls"></div>
+            <p class="pick-sheet__draw" data-ref="drawText"></p>
+            <p class="pick-sheet__final">Picks are final. Once locked in, this pick can't be changed or removed.</p>
+            <p class="pick-sheet__lock" data-ref="lockText"></p>
+          </div>
+          <p class="form-error" data-ref="error" role="alert"></p>
+        </div>
+        <footer class="sheet__footer">
+          <button class="secondary-button" type="button" data-ref="back">Cancel</button>
+          <button class="primary-button sheet__apply" type="button" data-ref="primary">Lock in pick</button>
+        </footer>
+      </div>
+    </dialog>
+  </template>
+
+  <template id="tpl-results-popup">
+    <dialog class="result-dialog" aria-labelledby="result-dialog-title">
+      <div class="result-dialog__inner">
+        <div class="account-card__crest" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6-4.5-4.2 6.1-.7z"/></svg>
+        </div>
+        <h2 class="result-dialog__title" id="result-dialog-title">Results are in</h2>
+        <p class="result-dialog__text" data-ref="intro"></p>
+        <div class="result-dialog__list" data-ref="list"></div>
+        <button class="primary-button" type="button" data-ref="done">Nice</button>
+      </div>
+    </dialog>
+  </template>
 </body>
 </html>

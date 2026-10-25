@@ -13,6 +13,7 @@ const { createApp } = require('./app');
 const { pool, closePool } = require('./db/pool');
 const { createGameService } = require('./services/game-service');
 const { createAuthService } = require('./services/auth-service');
+const { createPickService } = require('./services/pick-service');
 const config = require('./config/env');
 
 const DEFAULT_PORT = 3000;
@@ -24,7 +25,10 @@ if (!authService) {
   console.warn('Google sign-in is off: set GOOGLE_CLIENT_ID, OWNER_EMAILS and JWT_SECRET to turn it on.');
 }
 
-const app = createApp({ gameService: createGameService({ db: pool }), authService });
+// My Picks belong to a signed-in owner, so they are only available when sign-in is on.
+const pickService = authService ? createPickService({ db: pool }) : null;
+
+const app = createApp({ gameService: createGameService({ db: pool }), authService, pickService });
 
 const server = app.listen(port, () => {
   console.log(`AJenarator is running at http://localhost:${port}`);
