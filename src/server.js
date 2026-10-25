@@ -14,7 +14,9 @@ const { pool, closePool } = require('./db/pool');
 const { createGameService } = require('./services/game-service');
 const { createAuthService } = require('./services/auth-service');
 const { createPickService } = require('./services/pick-service');
+const { createDrawNightService } = require('./services/draw-night-service');
 const config = require('./config/env');
+const { createResultWatcher } = require('./ingest/result-watcher');
 
 const DEFAULT_PORT = 3000;
 const SHUTDOWN_TIMEOUT_MS = 10000;
@@ -32,6 +34,7 @@ const app = createApp({
   gameService: createGameService({ db: pool }),
   authService,
   pickService,
+  drawNightService: createDrawNightService({ db: pool }),
   hosting: config.hosting,
 });
 if (config.hosting.showIpCheck) {
@@ -42,8 +45,17 @@ const server = app.listen(port, () => {
   console.log(`AJenarator is running at http://localhost:${port}`);
 });
 
+// Server-side results check (GitHub Actions remains the backup).
+const resultWatcher = config.hosting.autoFetchResults ? createResultWatcher({ pool }) : null;
+if (resultWatcher) {
+  resultWatcher.start();
+}
+
 function shutDown(signal) {
   console.log(`${signal} received: shutting down.`);
+  if (resultWatcher) {
+    resultWatcher.stop();
+  }
   server.close(async () => {
     await closePool().catch(() => {});
     process.exit(0);

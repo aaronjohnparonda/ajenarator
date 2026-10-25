@@ -146,8 +146,13 @@
         <h1 class="section-heading__title" id="home-title">Today’s draws</h1>
         <p class="section-heading__caption" data-ref="today"></p>
       </div>
+      <a class="night-banner" href="#/live" data-ref="nightBanner" hidden>
+        <span class="night-banner__eyebrow">Draw Night</span>
+        <span class="night-banner__title" data-ref="nightTitle"></span>
+        <span class="night-banner__text" data-ref="nightText"></span>
+      </a>
       <div class="status-list" data-ref="list"></div>
-      <p class="fine-print">Results are checked automatically on draw nights from about 10 PM. Tap a game to generate picks for it.</p>
+      <p class="fine-print">After each 9:00 PM draw, AJenarator checks PCSO for the official result every 2 minutes until 10:30 PM, then every 10 minutes. Tap a game to generate picks for it.</p>
     </section>
   </template>
 
@@ -534,6 +539,37 @@
         <button class="primary-button" type="button" data-ref="done">Nice</button>
       </div>
     </dialog>
+  </template>
+  <template id="tpl-draw-night">
+    <section class="screen screen--night" aria-labelledby="night-title">
+      <div class="section-heading">
+        <h1 class="section-heading__title" id="night-title">Draw Night</h1>
+        <p class="section-heading__caption" data-ref="date"></p>
+      </div>
+      <div class="night-stages" data-ref="stages"></div>
+      <p class="fine-print">Numbers appear when PCSO posts the official result. AJenarator checks every 2 minutes after the draw, and this page updates by itself. The reveal shows the balls in the order PCSO drew them.</p>
+    </section>
+  </template>
+
+  <template id="tpl-night-stage">
+    <article class="night-stage">
+      <div class="night-stage__top">
+        <div class="night-stage__titles">
+          <p class="night-stage__game" data-ref="game"></p>
+          <p class="night-stage__status" data-ref="status"></p>
+        </div>
+        <span class="status-pill" data-ref="pill"><span class="status-pill__dot" aria-hidden="true"></span><span data-ref="pillLabel"></span></span>
+      </div>
+      <p class="night-stage__countdown" data-ref="countdown" hidden></p>
+      <div class="night-stage__balls" data-ref="balls"></div>
+      <p class="night-stage__summary" data-ref="summary" aria-live="polite"></p>
+      <div class="night-stage__pick" data-ref="pickRow" hidden>
+        <span class="night-stage__pick-label">Your pick</span>
+        <div class="night-stage__pick-balls" data-ref="pickBalls"></div>
+      </div>
+      <a class="secondary-button night-stage__cta" href="#/me" data-ref="pickCta" hidden>Lock in a pick (closes 8:00 PM)</a>
+      <button class="night-stage__replay" type="button" data-ref="replay" hidden>Replay reveal</button>
+    </article>
   </template>
 </body>
 </html>

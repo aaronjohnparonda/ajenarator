@@ -14,6 +14,7 @@
     "db:migrate": "node scripts/migrate.js",
     "ingest:backfill": "node scripts/ingest-backfill.js",
     "ingest:daily": "node scripts/ingest-daily.js",
+    "report:posting": "node scripts/report-posting.js",
     "analyze:patterns": "node scripts/analyze-patterns.js",
     "generate": "node scripts/generate.js",
     "backtest": "node scripts/backtest.js",

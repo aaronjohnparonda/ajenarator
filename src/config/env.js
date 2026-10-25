@@ -118,6 +118,8 @@ const MAX_PROXY_HOPS = 5;
  *   TRUST_PROXY_HOPS  how many proxies sit in front of the app (default 1). Used to read each
  *                     visitor's real IP for rate limits. Measure it with SHOW_IP_CHECK, don't guess.
  *   SHOW_IP_CHECK     "true" temporarily enables GET /api/v1/ip-check for that measurement.
+ *   AUTO_FETCH_RESULTS "true" makes the web server check PCSO for new results itself
+ *                     (turn on where the server stays awake, e.g. Render + uptime monitor).
  */
 function readHosting(problems) {
   const rawHops = (process.env.TRUST_PROXY_HOPS || '').trim();
@@ -132,6 +134,7 @@ function readHosting(problems) {
   return Object.freeze({
     trustProxyHops,
     showIpCheck: (process.env.SHOW_IP_CHECK || '').trim().toLowerCase() === 'true',
+    autoFetchResults: (process.env.AUTO_FETCH_RESULTS || '').trim().toLowerCase() === 'true',
   });
 }
 

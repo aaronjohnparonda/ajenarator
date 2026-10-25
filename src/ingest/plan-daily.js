@@ -31,7 +31,7 @@ function createDailyPlanner({ lookbackDays = DEFAULT_LOOKBACK_DAYS, alwaysSearch
       for (const game of games) {
         const isDue = date < today || timeNow >= game.drawTime.slice(0, 5);
         if (game.drawDays.has(weekday) && isDue && !storedKeys.has(drawKey(game.id, date))) {
-          outstanding.push(`${game.code} ${date}`);
+          outstanding.push({ gameCode: game.code, drawDate: date });
         }
       }
     }
@@ -40,6 +40,7 @@ function createDailyPlanner({ lookbackDays = DEFAULT_LOOKBACK_DAYS, alwaysSearch
       return {
         searches: [],
         expectedScopes,
+        outstanding,
         skipReason: 'All results due so far are already saved; PCSO was not contacted.',
       };
     }
@@ -47,6 +48,7 @@ function createDailyPlanner({ lookbackDays = DEFAULT_LOOKBACK_DAYS, alwaysSearch
     return {
       searches: [{ label: `All games ${startDate} to ${today}`, gameCode: null, startDate, endDate: today }],
       expectedScopes,
+      outstanding, // due draws not saved yet: [{ gameCode, drawDate }]
     };
   };
 }

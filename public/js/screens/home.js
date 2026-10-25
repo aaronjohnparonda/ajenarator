@@ -9,7 +9,7 @@
 import { cloneTemplate, createElement } from '../ui/dom.js';
 import { showToast } from '../ui/toast.js';
 import { writeSetting } from '../core/storage.js';
-import { manilaNow } from '../lib/ph-time.js';
+import { manilaNow, addDays, isoWeekday } from '../lib/ph-time.js';
 import { drawStatus } from '../lib/draw-status.js';
 import { formatCountdown } from '../lib/draw-schedule.js';
 import {
@@ -27,7 +27,7 @@ function statusDetail(status, now) {
     case 'tonight':
       return `Draw starts in ${countdown}`;
     case 'waiting':
-      return 'PCSO posts results from about 10 PM. Checking automatically.';
+      return 'Checking PCSO for the official result every few minutes. Tap Draw Night above to watch.';
     case 'result':
       return 'Tonight’s numbers are in.';
     case 'delayed':
@@ -35,6 +35,28 @@ function statusDetail(status, now) {
     default:
       return countdown ? `Next draw in ${countdown}` : '';
   }
+}
+
+const NIGHT_STARTS_AT_HOUR = 6;
+const DRAW_HOUR = 21;
+
+/** The Draw Night banner: what's happening with tonight's draws, linking to the live screen. */
+function nightBannerText(games, now) {
+  const { date, hour } = manilaNow(now);
+  const nightDate = hour < NIGHT_STARTS_AT_HOUR ? addDays(date, -1) : date;
+  const tonight = games.filter((game) => game.drawDays.includes(isoWeekday(nightDate)));
+  if (tonight.length === 0) {
+    return null;
+  }
+  const codes = tonight.map((game) => game.code).join(' · ');
+  const allIn = tonight.every((game) => game.lastDraw && game.lastDraw.drawDate === nightDate);
+  if (allIn) {
+    return { title: 'Tonight’s results are in', text: `${codes} · Replay the reveal →` };
+  }
+  if (nightDate !== date || hour >= DRAW_HOUR) {
+    return { title: 'Drawing now', text: `${codes} · Watch the results reveal here →` };
+  }
+  return { title: `Tonight at 9:00 PM: ${codes}`, text: 'Watch the draw night here, with your pick →' };
 }
 
 export function mountHomeScreen(root, { api }) {
@@ -90,9 +112,20 @@ export function mountHomeScreen(root, { api }) {
     refs.list.replaceChildren(...state.cards.map((entry) => entry.fragment));
   }
 
+  function renderBanner(now) {
+    const banner = state.loaded ? nightBannerText(state.games, now) : null;
+    refs.nightBanner.hidden = !banner;
+    if (banner) {
+      refs.nightTitle.textContent = banner.title;
+      refs.nightText.textContent = banner.text;
+      refs.nightBanner.classList.toggle('night-banner--live', banner.title === 'Drawing now');
+    }
+  }
+
   function tick() {
     const now = new Date();
     refs.today.textContent = formatDayHeading(manilaNow(now).date);
+    renderBanner(now);
     const orderKey = sortedGames(now).map((game) => `${game.code}:${drawStatus(game, now).state}`).join('|');
     if (orderKey !== state.orderKey) {
       renderList(); // a status changed (e.g. 9 PM passed): re-sort the board
@@ -104,8 +137,9 @@ export function mountHomeScreen(root, { api }) {
   async function refresh() {
     try {
       state.games = await api.fetchGames();
-      renderList();
       state.loaded = true;
+      renderList();
+      renderBanner(new Date());
     } catch (error) {
       if (!state.loaded) {
         refs.list.replaceChildren();

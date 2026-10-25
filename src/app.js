@@ -17,6 +17,7 @@ const helmet = require('helmet');
 const { createApiRouter } = require('./routes/api');
 const { createAuthRouter } = require('./routes/auth');
 const { createPicksRouter } = require('./routes/picks');
+const { createDrawNightRouter } = require('./routes/draw-night');
 const { createAttachUser, requireSameOrigin } = require('./middleware/session');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -34,9 +35,12 @@ function sendError(res, status, code, message) {
  * @param {object} [dependencies.gameService] - from createGameService(); tests pass a stand-in
  * @param {object} [dependencies.authService] - from createAuthService(); omitted = sign-in off
  * @param {object} [dependencies.pickService] - from createPickService(); needs sign-in
+ * @param {object} [dependencies.drawNightService] - from createDrawNightService()
  * @param {object} [dependencies.hosting] - { trustProxyHops, showIpCheck } from config
  */
-function createApp({ gameService, authService, pickService, hosting = {} } = {}) {
+function createApp({
+  gameService, authService, pickService, drawNightService, hosting = {},
+} = {}) {
   const { trustProxyHops = 1, showIpCheck = false } = hosting;
   const app = express();
   app.disable('x-powered-by');
@@ -87,6 +91,9 @@ function createApp({ gameService, authService, pickService, hosting = {} } = {})
   app.use('/api/v1/auth', createAuthRouter({ authService }));
   if (pickService) {
     app.use('/api/v1/picks', createPicksRouter({ pickService }));
+  }
+  if (drawNightService) {
+    app.use('/api/v1/draw-night', createDrawNightRouter({ drawNightService }));
   }
 
   if (gameService) {

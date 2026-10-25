@@ -139,3 +139,8 @@ export async function fetchPickSummary() {
 export async function markPicksSeen(ids) {
   return request('/picks/seen', { method: 'POST', body: { ids } });
 }
+
+/** Tonight's draws: status, official results (in draw order) and, when signed in, your picks. */
+export async function fetchDrawNight() {
+  return request('/draw-night');
+}

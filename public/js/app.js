@@ -10,6 +10,7 @@ import { mountGenerateScreen } from './screens/generate.js';
 import { mountStatsScreen } from './screens/stats.js';
 import { mountResultsScreen } from './screens/results.js';
 import { mountAccountScreen } from './screens/account.js';
+import { mountDrawNightScreen } from './screens/draw-night.js';
 import { loadSession, subscribeSession, getSession, firstName } from './core/session.js';
 import { fillAvatar } from './ui/avatar.js';
 import { showNewResults } from './ui/results-popup.js';
@@ -56,5 +57,6 @@ createRouter({
     stats: (root) => mountStatsScreen(root, { api }),
     results: (root) => mountResultsScreen(root, { api }),
     me: (root) => mountAccountScreen(root, { api }),
+    live: (root) => mountDrawNightScreen(root, { api }),
   },
 });

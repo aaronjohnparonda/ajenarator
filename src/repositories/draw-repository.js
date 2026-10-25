@@ -253,8 +253,21 @@ async function loadDrawsPage(db, gameId, { limit, offset, toDate = null }) {
   return { total: Number(countRow.total), draws: rows.map(mapFullDrawRow) };
 }
 
+/**
+ * Every game's draw on one date (for Draw Night), keyed by game id.
+ * Uses the (game_id, draw_date) unique index via the draw_date filter on a tiny result set.
+ */
+async function loadDrawsOnDate(db, drawDate) {
+  const [rows] = await db.query(
+    `SELECT game_id, ${FULL_DRAW_COLUMNS} FROM draws WHERE draw_date = ?`,
+    [drawDate],
+  );
+  return new Map(rows.map((row) => [row.game_id, mapFullDrawRow(row)]));
+}
+
 module.exports = {
   saveDraws,
+  loadDrawsOnDate,
   loadStoredDrawKeys,
   loadDrawCoverage,
   loadDrawsForGame,
