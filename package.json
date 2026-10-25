@@ -15,6 +15,7 @@
     "ingest:backfill": "node scripts/ingest-backfill.js",
     "ingest:daily": "node scripts/ingest-daily.js",
     "report:posting": "node scripts/report-posting.js",
+    "report:runs": "node scripts/report-runs.js",
     "analyze:patterns": "node scripts/analyze-patterns.js",
     "generate": "node scripts/generate.js",
     "backtest": "node scripts/backtest.js",
