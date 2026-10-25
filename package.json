@@ -9,6 +9,8 @@
     "dev": "node --watch src/server.js",
     "test": "node --test test/*.test.js",
     "db:check": "node scripts/db-check.js",
+    "db:create": "node scripts/db-create.js",
+    "db:compat": "node scripts/db-compat-check.js",
     "db:migrate": "node scripts/migrate.js",
     "ingest:backfill": "node scripts/ingest-backfill.js",
     "ingest:daily": "node scripts/ingest-daily.js",

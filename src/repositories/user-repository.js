@@ -17,15 +17,17 @@ function mapUserRow(row) {
  * @returns {Promise<{id, email, name, picture}>}
  */
 async function upsertGoogleUser(db, { googleSub, email, name, picture }) {
+  // Plain placeholders in the UPDATE part (not the newer "AS alias" or deprecated VALUES()
+  // forms) so this runs the same on MySQL 8 and TiDB.
   await db.execute(
     `INSERT INTO users (google_sub, email, display_name, picture_url)
-     VALUES (?, ?, ?, ?) AS incoming
+     VALUES (?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
-       email = incoming.email,
-       display_name = incoming.display_name,
-       picture_url = incoming.picture_url,
+       email = ?,
+       display_name = ?,
+       picture_url = ?,
        last_login_at = CURRENT_TIMESTAMP`,
-    [googleSub, email, name, picture],
+    [googleSub, email, name, picture, email, name, picture],
   );
   const [rows] = await db.execute(
     'SELECT id, email, display_name, picture_url FROM users WHERE google_sub = ?',
