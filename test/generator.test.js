@@ -7,8 +7,10 @@ const { generateCombinations, ImpossibleFiltersError } = require('../src/engine/
 const { estimateCoverage } = require('../src/engine/coverage');
 
 const GAMES = [
-  { code: '6/42', maxNumber: 42, exactRemovedShare: 0.204 },
-  { code: '6/58', maxNumber: 58, exactRemovedShare: 0.161 },
+  // Exact shares counted over every combination (5,245,786 and 40,475,358) with the default
+  // filters as of Oct 2026 (includes the "4+ multiples of 5, 6 or 7" rule).
+  { code: '6/42', maxNumber: 42, exactRemovedShare: 0.2158 },
+  { code: '6/58', maxNumber: 58, exactRemovedShare: 0.1742 },
 ];
 
 test('every generated combination is valid, unique, sorted and passes the filters', () => {

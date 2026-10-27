@@ -8,11 +8,12 @@
 
 import { readSetting, writeSetting } from '../core/storage.js';
 
-const RULE_KEYS = [
-  'oddEvenBalance', 'lowHighBalance', 'consecutive', 'tensGroups', 'evenlySpaced',
-  'sumRange', 'lastDigit', 'antiBirthday', 'pastWinners',
-];
 const LIST_KEYS = ['includeNumbers', 'excludeNumbers'];
+
+/** Every on/off rule the server knows for this game (so new rules never need listing here). */
+function ruleKeys(game) {
+  return Object.keys(game.defaultFilters).filter((key) => !LIST_KEYS.includes(key));
+}
 
 function storageKey(game) {
   return `filters.${game.code}`;
@@ -36,7 +37,7 @@ export function loadFilters(game) {
     saved = {};
   }
 
-  RULE_KEYS.forEach((key) => {
+  ruleKeys(game).forEach((key) => {
     if (saved[key] && typeof saved[key] === 'object') {
       Object.keys(settings[key]).forEach((field) => {
         if (field in saved[key] && typeof saved[key][field] === typeof settings[key][field]) {
@@ -56,7 +57,7 @@ export function loadFilters(game) {
 /** Saves only what differs from the defaults. */
 export function saveFilters(game, settings) {
   const changes = {};
-  RULE_KEYS.forEach((key) => {
+  ruleKeys(game).forEach((key) => {
     Object.keys(settings[key]).forEach((field) => {
       if (!sameValue(settings[key][field], game.defaultFilters[key][field])) {
         changes[key] = changes[key] || {};
@@ -74,7 +75,7 @@ export function saveFilters(game, settings) {
 
 /** How many rules or number choices differ from the defaults (for the "Custom · 2 changes" label). */
 export function countChanges(game, settings) {
-  let changes = RULE_KEYS.filter((key) => !sameValue(settings[key], game.defaultFilters[key])).length;
+  let changes = ruleKeys(game).filter((key) => !sameValue(settings[key], game.defaultFilters[key])).length;
   changes += LIST_KEYS.filter((key) => settings[key].length > 0).length;
   return changes;
 }

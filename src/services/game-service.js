@@ -78,12 +78,20 @@ function createGameService({ db, clock = () => Date.now() }) {
     return keys;
   }
 
-  function getCoverageShare(game, filters) {
+  /**
+   * @param {number[]|null} lastDrawNumbers - the game's latest result, for the "from the previous
+   *   draw" rule. Deliberately NOT part of the cache key: which draw is the latest changes the
+   *   estimate by far less than the sampling error (+/- 0.25 points), and recomputing after every
+   *   draw would cost seconds on a small server.
+   */
+  function getCoverageShare(game, filters, lastDrawNumbers = null) {
     const key = `${game.code}|${JSON.stringify(filters)}`;
     if (coverageCache.has(key)) {
       return coverageCache.get(key);
     }
-    const share = round(estimateCoverage({ game, filters, sampleSize: COVERAGE_SAMPLE_SIZE }).keptShare, 4);
+    const share = round(estimateCoverage({
+      game, filters, lastDrawNumbers, sampleSize: COVERAGE_SAMPLE_SIZE,
+    }).keptShare, 4);
     if (coverageCache.size >= COVERAGE_CACHE_LIMIT) {
       coverageCache.delete(coverageCache.keys().next().value); // drop the oldest entry
     }
@@ -102,7 +110,9 @@ function createGameService({ db, clock = () => Date.now() }) {
       drawDays: [...game.drawDays].sort((a, b) => a - b),
       drawTime: game.drawTime.slice(0, 5),
       defaultFilters: resolveFilters(game),
-      defaultCoverageShare: getCoverageShare(game, resolveFilters(game)),
+      defaultCoverageShare: getCoverageShare(
+        game, resolveFilters(game), latestDraws.has(game.id) ? latestDraws.get(game.id).numbers : null,
+      ),
       lastDraw: latestDraws.get(game.id) || null,
     }));
   }
@@ -115,7 +125,10 @@ function createGameService({ db, clock = () => Date.now() }) {
     const game = await findGame(slug);
     const resolvedFilters = resolveFilters(game, filters);
     const pastWinnerKeys = resolvedFilters.pastWinners.enabled ? await getPastWinnerKeys(game) : new Set();
-    const { combinations } = generateCombinations({ game, filters: resolvedFilters, count, pastWinnerKeys });
+    const lastDrawNumbers = resolvedFilters.lastDrawRepeat.enabled ? await getLatestNumbers(game) : null;
+    const { combinations } = generateCombinations({
+      game, filters: resolvedFilters, count, pastWinnerKeys, lastDrawNumbers,
+    });
 
     return {
       gameCode: game.code,
@@ -123,7 +136,7 @@ function createGameService({ db, clock = () => Date.now() }) {
         const pattern = describeCombination(numbers, game.maxNumber);
         return { numbers, pattern: { sum: pattern.sum, oddCount: pattern.oddCount, lowCount: pattern.lowCount } };
       }),
-      coverageShare: getCoverageShare(game, resolvedFilters),
+      coverageShare: getCoverageShare(game, resolvedFilters, lastDrawNumbers),
       filters: resolvedFilters,
     };
   }
@@ -141,6 +154,13 @@ function createGameService({ db, clock = () => Date.now() }) {
     const draws = await loadDrawsForGame(db, game.id);
     drawsCache.set(game.id, { latestDrawDate, draws });
     return { draws, latestDrawDate };
+  }
+
+  /** The game's most recent winning numbers (fresh: uses the same check as getDraws). */
+  async function getLatestNumbers(game) {
+    const { draws, latestDrawDate } = await getDraws(game);
+    const latest = draws.find((draw) => draw.drawDate === latestDrawDate);
+    return latest ? latest.numbers : null;
   }
 
   /** Statistics for one game; recomputed only when a new draw arrives or the Philippine date changes. */
@@ -167,8 +187,9 @@ function createGameService({ db, clock = () => Date.now() }) {
   async function backtest({ slug, filters = {} }) {
     const game = await findGame(slug);
     const resolvedFilters = resolveFilters(game, filters);
-    const { draws } = await getDraws(game);
-    const keptShare = getCoverageShare(game, resolvedFilters);
+    const { draws, latestDrawDate } = await getDraws(game);
+    const latest = draws.find((draw) => draw.drawDate === latestDrawDate);
+    const keptShare = getCoverageShare(game, resolvedFilters, latest ? latest.numbers : null);
     const result = runBacktest({ game, filters: resolvedFilters, draws, coverage: { keptShare } });
 
     return {

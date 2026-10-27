@@ -305,6 +305,10 @@
               <span class="filter-row__text"><span class="filter-row__name">At least 3 tens-groups</span><span class="filter-row__hint">Avoids picks crowded into one or two decades</span></span>
               <input class="switch" type="checkbox" data-rule="tensGroups">
             </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">At most 3 in one tens-group</span><span class="filter-row__hint">Avoids picks like 30-33-35-38 (optional)</span></span>
+              <input class="switch" type="checkbox" data-rule="crowdedDecade">
+            </label>
           </fieldset>
 
           <fieldset class="filter-group">
@@ -319,6 +323,18 @@
                 <label class="segmented__option"><input type="radio" name="consecutive-mode" value="relaxed"><span>Relaxed</span></label>
               </div>
             </div>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">At most 2 consecutive pairs</span><span class="filter-row__hint">Removes picks like 1-2, 33-34, 41-42</span></span>
+              <input class="switch" type="checkbox" data-rule="consecutivePairs">
+            </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">No 4 multiples of 5, 6 or 7</span><span class="filter-row__hint">Removes picks like 5-15-30-40 or 7-14-28-35</span></span>
+              <input class="switch" type="checkbox" data-rule="sameMultiple">
+            </label>
+            <label class="filter-row">
+              <span class="filter-row__text"><span class="filter-row__name">No 4 numbers from the last draw</span><span class="filter-row__hint">Skips near-replays of the latest result</span></span>
+              <input class="switch" type="checkbox" data-rule="lastDrawRepeat">
+            </label>
             <label class="filter-row">
               <span class="filter-row__text"><span class="filter-row__name">No 4 evenly spaced</span><span class="filter-row__hint">Removes patterns like 5-10-15-20</span></span>
               <input class="switch" type="checkbox" data-rule="evenlySpaced">

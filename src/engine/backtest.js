@@ -8,7 +8,8 @@
  * it shapes picks without changing the odds. This is shown honestly, whatever the result.
  *
  * The "no past winners" rule is applied fairly: each draw is only compared with winners
- * from BEFORE its own date (otherwise every draw would match itself).
+ * from BEFORE its own date (otherwise every draw would match itself). Likewise the
+ * "from the previous draw" rule compares each draw with the draw just before it.
  */
 
 const { checkCombination } = require('./filters');
@@ -38,10 +39,11 @@ function runBacktest({ game, filters, draws, coverage }) {
   const removedByRule = {};
   const removedExamples = [];
   let kept = 0;
+  let previousNumbers = null;
 
   for (const draw of ordered) {
     const key = draw.numbers.join('-');
-    const { passed, failedRules } = checkCombination(draw.numbers, game, filters, earlierWinners);
+    const { passed, failedRules } = checkCombination(draw.numbers, game, filters, earlierWinners, previousNumbers);
     if (passed) {
       kept += 1;
     } else {
@@ -53,6 +55,7 @@ function runBacktest({ game, filters, draws, coverage }) {
       }
     }
     earlierWinners.add(key);
+    previousNumbers = draw.numbers;
   }
 
   const total = ordered.length;

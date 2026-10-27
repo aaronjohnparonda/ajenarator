@@ -27,6 +27,7 @@ function randomCombination(maxNumber, randomInt) {
  * @param {object} options
  * @param {object} options.game - { code, maxNumber }
  * @param {object} options.filters - output of resolveFilters()
+ * @param {number[]|null} [options.lastDrawNumbers] - the game's latest result (for that rule)
  * @param {number} [options.sampleSize]
  * @param {Function} [options.randomInt]
  * @returns {{ keptShare, marginOfError, estimatedKeptCombinations, totalCombinations, sampleSize, failedByRule }}
@@ -35,6 +36,7 @@ function randomCombination(maxNumber, randomInt) {
 function estimateCoverage({
   game,
   filters,
+  lastDrawNumbers = null,
   sampleSize = DEFAULT_SAMPLE_SIZE,
   randomInt = (max) => crypto.randomInt(max),
 }) {
@@ -44,7 +46,9 @@ function estimateCoverage({
   let kept = 0;
 
   for (let index = 0; index < sampleSize; index += 1) {
-    const { passed, failedRules } = checkCombination(randomCombination(game.maxNumber, randomInt), game, sampleFilters);
+    const { passed, failedRules } = checkCombination(
+      randomCombination(game.maxNumber, randomInt), game, sampleFilters, undefined, lastDrawNumbers,
+    );
     if (passed) {
       kept += 1;
     }

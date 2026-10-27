@@ -45,6 +45,7 @@ function pickDistinct(pool, count, randomInt) {
  * @param {object} options.filters - output of resolveFilters()
  * @param {number} options.count - how many combinations (1-10)
  * @param {Set<string>} [options.pastWinnerKeys] - "1-2-3-4-5-6" strings
+ * @param {number[]|null} [options.lastDrawNumbers] - the game's latest result
  * @param {Function} [options.randomInt] - (max) => integer in [0, max); defaults to crypto.randomInt
  * @param {number} [options.maxAttempts]
  * @returns {{ combinations: number[][], attempts: number }}
@@ -54,6 +55,7 @@ function generateCombinations({
   filters,
   count,
   pastWinnerKeys = new Set(),
+  lastDrawNumbers = null,
   randomInt = (max) => crypto.randomInt(max),
   maxAttempts = DEFAULT_MAX_ATTEMPTS,
 }) {
@@ -78,7 +80,7 @@ function generateCombinations({
     attempts += 1;
     const numbers = [...included, ...pickDistinct(pool, slotsToFill, randomInt)].sort((a, b) => a - b);
     const key = numbers.join('-');
-    if (!found.has(key) && checkCombination(numbers, game, filters, pastWinnerKeys).passed) {
+    if (!found.has(key) && checkCombination(numbers, game, filters, pastWinnerKeys, lastDrawNumbers).passed) {
       found.set(key, numbers);
     }
   }

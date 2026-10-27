@@ -10,8 +10,11 @@ test('describes a real 6/42 winning combination (Jan 2, 2025)', () => {
     lowCount: 1,
     sum: 198,
     longestRun: 3,
+    consecutivePairs: 2,
     maxSameLastDigit: 1,
     decadeGroups: 3,
+    maxInOneDecade: 3,
+    maxSameMultiple: 2,
     hasEvenlySpacedFour: false,
     allWithinBirthdayRange: false,
   });
@@ -39,4 +42,15 @@ test('rejects invalid combinations', () => {
   assert.throws(() => describeCombination([1, 2, 3, 4, 5, 43], 42), /1 to 42/);
   assert.throws(() => describeCombination([2, 1, 3, 4, 5, 6], 42), /sorted/);
   assert.throws(() => describeCombination([1, 1, 3, 4, 5, 6], 42), /unique/);
+});
+
+test('counts crowded tens-groups and shared multiples', () => {
+  const crowded = describeCombination([3, 30, 33, 35, 38, 41], 42);
+  assert.equal(crowded.maxInOneDecade, 4);
+  const fives = describeCombination([5, 15, 25, 35, 36, 41], 42);
+  assert.equal(fives.maxSameMultiple, 4);
+  const sevens = describeCombination([7, 14, 21, 28, 30, 40], 42);
+  assert.equal(sevens.maxSameMultiple, 4);
+  const mixed = describeCombination([3, 11, 18, 27, 34, 41], 42);
+  assert.equal(mixed.maxSameMultiple, 1);
 });

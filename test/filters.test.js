@@ -84,3 +84,24 @@ test('rejects bad settings with readable messages', () => {
     assert.throws(() => resolveFilters(GAME_42, settings), (error) => error instanceof FilterValidationError && message.test(error.message), JSON.stringify(settings));
   }
 });
+
+test('new rules: multiples of 5/6/7 and previous-draw repeats are on; crowded tens-group is off', () => {
+  const game = { code: '6/42', maxNumber: 42 };
+  const filters = resolveFilters(game);
+  assert.equal(filters.sameMultiple.enabled, true);
+  assert.equal(filters.lastDrawRepeat.enabled, true);
+  assert.equal(filters.crowdedDecade.enabled, false);
+
+  // 7-14-28-35 are four multiples of 7 (and not evenly spaced, so only this rule applies)
+  assert.deepEqual(checkCombination([7, 14, 22, 28, 35, 41], game, filters).failedRules, ['sameMultiple']);
+
+  const previous = [3, 11, 18, 27, 34, 41];
+  assert.deepEqual(checkCombination([3, 11, 18, 27, 35, 40], game, filters, new Set(), previous).failedRules, ['lastDrawRepeat']);
+  assert.equal(checkCombination([3, 11, 18, 26, 35, 40], game, filters, new Set(), previous).passed, true); // 3 shared is fine
+  assert.equal(checkCombination([3, 11, 18, 27, 35, 40], game, filters).passed, true); // no previous draw known: rule skipped
+
+  const crowded = [2, 12, 30, 33, 35, 38]; // four in the 30s
+  assert.equal(checkCombination(crowded, game, filters).passed, true);
+  const strict = resolveFilters(game, { crowdedDecade: { enabled: true } });
+  assert.deepEqual(checkCombination(crowded, game, strict).failedRules, ['crowdedDecade']);
+});

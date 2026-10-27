@@ -39,9 +39,10 @@ function randomDraws(count, seed = 20261025) {
 }
 
 test('random draws show no edge: kept share of winners matches kept share of all combinations', () => {
-  const result = runBacktest({ game: GAME, filters: resolveFilters(GAME), draws: randomDraws(3000), coverage: { keptShare: 0.796 } });
+  const result = runBacktest({ game: GAME, filters: resolveFilters(GAME), draws: randomDraws(3000), coverage: { keptShare: 0.783 } });
+  // 0.783 = exact 78.42% kept by the default rules, minus ~0.18% that share 4+ with the previous draw
   assert.equal(result.totalDraws, 3000);
-  assert.ok(Math.abs(result.keptShareOfWinners - 0.796) < 0.04);
+  assert.ok(Math.abs(result.keptShareOfWinners - 0.783) < 0.04);
   assert.match(result.verdict, /^No edge/);
 });
 
@@ -57,10 +58,11 @@ test('a repeated winner is only compared with EARLIER draws', () => {
   const filters = resolveFilters(GAME);
   const draws = [
     { drawDate: '2020-01-02', numbers: [3, 11, 18, 27, 34, 41] },
+    { drawDate: '2020-01-03', numbers: [2, 9, 16, 24, 30, 39] }, // in between, so only the past-winner rule applies
     { drawDate: '2020-01-04', numbers: [3, 11, 18, 27, 34, 41] },
   ];
   const result = runBacktest({ game: GAME, filters, draws, coverage: { keptShare: 0.8 } });
-  assert.equal(result.keptDraws, 1); // first occurrence kept, the repeat removed
+  assert.equal(result.keptDraws, 2); // first occurrence and the in-between draw kept, the repeat removed
   assert.deepEqual(result.removedByRule, { pastWinners: 1 });
 });
 
@@ -85,4 +87,16 @@ test('wilson interval behaves at the edges', () => {
   assert.deepEqual(wilsonInterval(0, 0), { low: 0, high: 0 });
   const range = wilsonInterval(80, 100);
   assert.ok(range.low < 0.8 && range.high > 0.8);
+});
+
+test('the "from the previous draw" rule compares each draw with the one just before it', () => {
+  const filters = resolveFilters(GAME);
+  const draws = [
+    { drawDate: '2021-03-02', numbers: [3, 11, 18, 27, 34, 41] },
+    { drawDate: '2021-03-04', numbers: [3, 11, 18, 27, 35, 40] }, // shares 4 with the previous draw
+    { drawDate: '2021-03-06', numbers: [2, 11, 18, 26, 33, 39] }, // shares only 2 with its previous
+  ];
+  const result = runBacktest({ game: GAME, filters, draws, coverage: { keptShare: 0.783 } });
+  assert.deepEqual(result.removedByRule, { lastDrawRepeat: 1 });
+  assert.equal(result.removedExamples[0].drawDate, '2021-03-04');
 });

@@ -8,16 +8,28 @@
  *        at least 3 tens-groups, no 4 evenly spaced, sum inside the game's middle 90%,
  *        no repeat of a past winning combination
  *   OFF: max 2 sharing a last digit, anti-birthday (at least one number above 31)
- *   NEVER: consecutive pairs are not filtered (about half of all winners have one)
+ *   ON (added later): no 3 or more consecutive pairs, like 1-2-33-34-41-42
+ *     (exact share of all combinations: 1.55% for 6/42 down to 0.60% for 6/58)
+ *   NEVER: one or two consecutive pairs are fine (about half of all winners have one)
+ *   ADDED (Oct 2026, measured on 1M random tickets per game):
+ *     ON : no 4+ multiples of the same 5, 6 or 7 (e.g. 5-15-25-35)   ~1.4% of 6/42 tickets
+ *     ON : no 4+ numbers repeated from the game's previous draw       ~0.18% of 6/42 tickets
+ *     OFF: no 4+ numbers in one tens-group (e.g. 30-33-35-38)          ~7.8% of 6/42 tickets
+ *   Rejected after measuring: 3 evenly spaced (50% of all tickets!), 2+ consecutive pairs (14%),
+ *     all/no primes (9%), big gaps (7%), mirror pairs (0.1%), near-copies of past winners.
  * Plus user controls: numbers that must be included / must be excluded.
  */
 
-const { describeCombination } = require('./patterns');
+const { describeCombination, sharedCount } = require('./patterns');
 const { getGameDefaults, possibleSumRange, tensGroupCount } = require('./game-defaults');
 
 const BIRTHDAY_MAX = 31;
 const MAX_INCLUDED_NUMBERS = 5;
 const CONSECUTIVE_LIMITS = Object.freeze({ strict: 2, relaxed: 3 }); // longest run allowed
+const MAX_CONSECUTIVE_PAIRS = 2; // 3 or more pairs (e.g. 1-2-33-34-41-42) is removed
+const MAX_SAME_MULTIPLE = 3; // 4+ multiples of the same 5, 6 or 7 is removed
+const MAX_FROM_LAST_DRAW = 3; // 4+ numbers repeated from the previous draw is removed
+const MAX_IN_ONE_DECADE = 3; // 4+ in one tens-group is removed (optional rule)
 
 class FilterValidationError extends Error {
   constructor(problems) {
@@ -32,7 +44,11 @@ const RULES = Object.freeze([
   { key: 'oddEvenBalance', label: 'All odd or all even' },
   { key: 'lowHighBalance', label: 'All low or all high' },
   { key: 'consecutive', label: 'Too many consecutive numbers' },
+  { key: 'consecutivePairs', label: '3 or more consecutive pairs' },
   { key: 'tensGroups', label: 'Too few tens-groups' },
+  { key: 'crowdedDecade', label: '4 or more in one tens-group' },
+  { key: 'sameMultiple', label: '4 or more multiples of 5, 6 or 7' },
+  { key: 'lastDrawRepeat', label: '4 or more from the previous draw' },
   { key: 'evenlySpaced', label: '4 evenly spaced numbers' },
   { key: 'sumRange', label: 'Sum outside the chosen range' },
   { key: 'lastDigit', label: 'Too many sharing a last digit' },
@@ -48,7 +64,11 @@ function defaultFilters(game) {
     oddEvenBalance: { enabled: true },
     lowHighBalance: { enabled: true },
     consecutive: { enabled: true, mode: 'strict' },
+    consecutivePairs: { enabled: true },
     tensGroups: { enabled: true, min: 3 },
+    crowdedDecade: { enabled: false },
+    sameMultiple: { enabled: true },
+    lastDrawRepeat: { enabled: true },
     evenlySpaced: { enabled: true },
     sumRange: { enabled: true, min: sumRange.min, max: sumRange.max },
     lastDigit: { enabled: false, max: 2 },
@@ -164,9 +184,11 @@ function resolveFilters(game, userSettings = {}) {
  * @param {object} game - { code, maxNumber }
  * @param {object} filters - output of resolveFilters()
  * @param {Set<string>} [pastWinnerKeys] - past winning combinations as "1-2-3-4-5-6" strings
+ * @param {number[]|null} [lastDrawNumbers] - the game's previous draw; without it the
+ *   "from the previous draw" rule is skipped
  * @returns {{ passed: boolean, failedRules: string[] }}
  */
-function checkCombination(numbers, game, filters, pastWinnerKeys = new Set()) {
+function checkCombination(numbers, game, filters, pastWinnerKeys = new Set(), lastDrawNumbers = null) {
   const pattern = describeCombination(numbers, game.maxNumber);
   const failed = [];
 
@@ -179,8 +201,21 @@ function checkCombination(numbers, game, filters, pastWinnerKeys = new Set()) {
   if (filters.consecutive.enabled && pattern.longestRun > CONSECUTIVE_LIMITS[filters.consecutive.mode]) {
     failed.push('consecutive');
   }
+  if (filters.consecutivePairs.enabled && pattern.consecutivePairs > MAX_CONSECUTIVE_PAIRS) {
+    failed.push('consecutivePairs');
+  }
   if (filters.tensGroups.enabled && pattern.decadeGroups < filters.tensGroups.min) {
     failed.push('tensGroups');
+  }
+  if (filters.crowdedDecade.enabled && pattern.maxInOneDecade > MAX_IN_ONE_DECADE) {
+    failed.push('crowdedDecade');
+  }
+  if (filters.sameMultiple.enabled && pattern.maxSameMultiple > MAX_SAME_MULTIPLE) {
+    failed.push('sameMultiple');
+  }
+  if (filters.lastDrawRepeat.enabled && lastDrawNumbers
+    && sharedCount(numbers, lastDrawNumbers) > MAX_FROM_LAST_DRAW) {
+    failed.push('lastDrawRepeat');
   }
   if (filters.evenlySpaced.enabled && pattern.hasEvenlySpacedFour) {
     failed.push('evenlySpaced');

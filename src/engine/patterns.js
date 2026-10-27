@@ -12,11 +12,15 @@
  *   longestRun               longest chain of consecutive numbers (1 = none, 2 = a pair like 14-15)
  *   maxSameLastDigit         most numbers sharing a last digit (e.g. 3, 13, 23 -> 3)
  *   decadeGroups             how many tens-groups are used: 1-9, 10-19, 20-29, ...
+ *   maxInOneDecade           most numbers in a single tens-group (e.g. 30-33-35-38 -> 4)
+ *   maxSameMultiple          most numbers that are multiples of the same 5, 6 or 7
+ *                            (e.g. 5-15-25-35 -> 4); smaller bases are too common to matter
  *   hasEvenlySpacedFour      any 4 of the numbers evenly spaced (e.g. 5-10-15-20)
  *   allWithinBirthdayRange   every number is 31 or lower (typical birthday-based picks)
  */
 
 const BIRTHDAY_MAX = 31;
+const MULTIPLE_BASES = Object.freeze([5, 6, 7]);
 
 function assertValidCombination(numbers, maxNumber) {
   if (!Array.isArray(numbers) || numbers.length !== 6) {
@@ -55,23 +59,27 @@ function describeCombination(numbers, maxNumber) {
 
   const lowLimit = Math.floor(maxNumber / 2);
   const lastDigitCounts = new Array(10).fill(0);
-  const decades = new Set();
+  const decadeCounts = new Map();
   let oddCount = 0;
   let lowCount = 0;
   let sum = 0;
   let longestRun = 1;
   let currentRun = 1;
+  let consecutivePairs = 0;
 
   numbers.forEach((number, index) => {
     oddCount += number % 2;
     lowCount += number <= lowLimit ? 1 : 0;
     sum += number;
     lastDigitCounts[number % 10] += 1;
-    decades.add(Math.floor(number / 10));
+    const decade = Math.floor(number / 10);
+    decadeCounts.set(decade, (decadeCounts.get(decade) || 0) + 1);
 
     if (index > 0) {
-      currentRun = number === numbers[index - 1] + 1 ? currentRun + 1 : 1;
+      const followsPrevious = number === numbers[index - 1] + 1;
+      currentRun = followsPrevious ? currentRun + 1 : 1;
       longestRun = Math.max(longestRun, currentRun);
+      consecutivePairs += followsPrevious ? 1 : 0;
     }
   });
 
@@ -80,11 +88,20 @@ function describeCombination(numbers, maxNumber) {
     lowCount,
     sum,
     longestRun,
+    consecutivePairs, // neighbours one apart: 1-2-33-34-41-42 has 3; 7-8-9 has 2
     maxSameLastDigit: Math.max(...lastDigitCounts),
-    decadeGroups: decades.size,
+    decadeGroups: decadeCounts.size,
+    maxInOneDecade: Math.max(...decadeCounts.values()),
+    maxSameMultiple: Math.max(...MULTIPLE_BASES.map((base) => numbers.filter((number) => number % base === 0).length)),
     hasEvenlySpacedFour: hasEvenlySpacedFour(numbers),
     allWithinBirthdayRange: numbers[numbers.length - 1] <= BIRTHDAY_MAX,
   };
 }
 
-module.exports = { describeCombination };
+/** How many numbers two combinations share (e.g. a pick and the previous draw). */
+function sharedCount(numbers, otherNumbers) {
+  const other = new Set(otherNumbers);
+  return numbers.filter((number) => other.has(number)).length;
+}
+
+module.exports = { describeCombination, sharedCount, MULTIPLE_BASES };

@@ -21,7 +21,11 @@ const GAME = {
     oddEvenBalance: { enabled: true },
     lowHighBalance: { enabled: true },
     consecutive: { enabled: true, mode: 'strict' },
+    consecutivePairs: { enabled: true },
     tensGroups: { enabled: true, min: 3 },
+    crowdedDecade: { enabled: false },
+    sameMultiple: { enabled: true },
+    lastDrawRepeat: { enabled: true },
     evenlySpaced: { enabled: true },
     sumRange: { enabled: true, min: 83, max: 175 },
     lastDigit: { enabled: false, max: 2 },
@@ -85,4 +89,23 @@ test('broken or tampered saved data is ignored safely', async () => {
   assert.equal(settings.sumRange.max, 150);
   assert.deepEqual(settings.includeNumbers, [7]);
   assert.equal('unknownRule' in settings, false);
+});
+
+test('rules added later (and consecutive pairs) are saved, restored and counted', async () => {
+  const { loadFilters, saveFilters, countChanges } = await load();
+  const settings = loadFilters(GAME);
+  settings.consecutivePairs.enabled = false;
+  settings.crowdedDecade.enabled = true;
+  settings.lastDrawRepeat.enabled = false;
+  saveFilters(GAME, settings);
+  assert.deepEqual(JSON.parse(stored.get('ajenarator.filters.6/42')), {
+    consecutivePairs: { enabled: false },
+    crowdedDecade: { enabled: true },
+    lastDrawRepeat: { enabled: false },
+  });
+  const reloaded = loadFilters(GAME);
+  assert.equal(reloaded.consecutivePairs.enabled, false);
+  assert.equal(reloaded.crowdedDecade.enabled, true);
+  assert.equal(reloaded.sameMultiple.enabled, true);
+  assert.equal(countChanges(GAME, reloaded), 3);
 });

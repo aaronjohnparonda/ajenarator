@@ -17,6 +17,7 @@
     "report:posting": "node scripts/report-posting.js",
     "report:runs": "node scripts/report-runs.js",
     "analyze:patterns": "node scripts/analyze-patterns.js",
+    "analyze:new-rules": "node scripts/analyze-new-rules.js",
     "generate": "node scripts/generate.js",
     "backtest": "node scripts/backtest.js",
     "stats": "node scripts/stats.js",
