@@ -14,7 +14,7 @@ const { loadActiveGames } = require('../repositories/game-repository');
 const {
   loadLatestDrawPerGame, loadPastWinnerKeys, loadLatestDrawDate, loadDrawsForGame, loadDrawsPage,
 } = require('../repositories/draw-repository');
-const { resolveFilters } = require('../engine/filters');
+const { resolveFilters, checkCombination, RULES } = require('../engine/filters');
 const { generateCombinations } = require('../engine/generator');
 const { estimateCoverage } = require('../engine/coverage');
 const { describeCombination } = require('../engine/patterns');
@@ -35,6 +35,15 @@ class GameNotFoundError extends Error {
 }
 
 /** "6/42" <-> "6-42" (a slash cannot sit safely inside a URL path segment). */
+class DrawNotFoundError extends Error {
+  constructor(gameCode, drawDate) {
+    super(drawDate ? `No ${gameCode} draw is saved for ${drawDate}.` : `No ${gameCode} draws are saved yet.`);
+    this.name = 'DrawNotFoundError';
+  }
+}
+
+const RULE_LABELS = Object.fromEntries(RULES.map((rule) => [rule.key, rule.label]));
+
 function slugForCode(code) {
   return code.replace('/', '-');
 }
@@ -219,7 +228,39 @@ function createGameService({ db, clock = () => Date.now() }) {
     };
   }
 
-  return { listGames, generate, getStats, listDraws, backtest };
+  /**
+   * Would these filter settings have allowed an official winning combination?
+   * Checked exactly as the generator would have that night: "past winner" only counts EARLIER
+   * draws, and "from the last draw" uses the draw just before it.
+   * @param {{ slug: string, filters?: object, drawDate?: string|null }} request - latest draw if no date
+   * @throws GameNotFoundError, FilterValidationError, DrawNotFoundError
+   */
+  async function checkDraw({ slug, filters = {}, drawDate = null }) {
+    const game = await findGame(slug);
+    const resolvedFilters = resolveFilters(game, filters);
+    const { draws } = await getDraws(game); // oldest first
+    const index = drawDate === null
+      ? draws.length - 1
+      : draws.findIndex((draw) => draw.drawDate === drawDate);
+    if (index < 0) {
+      throw new DrawNotFoundError(game.code, drawDate);
+    }
+
+    const draw = draws[index];
+    const earlierWinners = new Set(draws.slice(0, index).map((earlier) => earlier.numbers.join('-')));
+    const previousNumbers = index > 0 ? draws[index - 1].numbers : null;
+    const { passed, failedRules } = checkCombination(draw.numbers, game, resolvedFilters, earlierWinners, previousNumbers);
+
+    return {
+      gameCode: game.code,
+      drawDate: draw.drawDate,
+      numbers: draw.numbers,
+      allowed: passed,
+      blockedBy: failedRules.map((rule) => ({ rule, label: RULE_LABELS[rule] || rule })),
+    };
+  }
+
+  return { listGames, generate, getStats, listDraws, backtest, checkDraw };
 }
 
-module.exports = { createGameService, GameNotFoundError, slugForCode };
+module.exports = { createGameService, GameNotFoundError, DrawNotFoundError, slugForCode };

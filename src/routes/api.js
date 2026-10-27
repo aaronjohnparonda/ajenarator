@@ -10,11 +10,13 @@
  *   GET  /api/v1/games/:slug/stats      frequency, hot/cold, gaps, distributions
  *   GET  /api/v1/games/:slug/draws      ?page=1&limit=20&to=YYYY-MM-DD (all optional)
  *   POST /api/v1/games/:slug/backtest   body { "filters": { ... }? }
+ *   POST /api/v1/games/:slug/check-draw body { "filters": { ... }?, "drawDate": "YYYY-MM-DD"? }
+ *        would these filters have allowed that official result? (latest draw if no date)
  */
 
 const express = require('express');
 const { rateLimit } = require('express-rate-limit');
-const { GameNotFoundError } = require('../services/game-service');
+const { GameNotFoundError, DrawNotFoundError } = require('../services/game-service');
 const { FilterValidationError } = require('../engine/filters');
 const { ImpossibleFiltersError, MAX_COUNT } = require('../engine/generator');
 const { isValidIsoDate } = require('../utils/ph-time');
@@ -102,6 +104,23 @@ function createApiRouter({ gameService }) {
     return res.json({ success: true, data: result });
   });
 
+  router.post('/games/:slug/check-draw', readLimiter, async (req, res) => {
+    const body = req.body === undefined ? {} : req.body;
+    if (!isPlainObject(body)) {
+      return sendError(res, 422, 'INVALID_REQUEST', 'Send a JSON object like {"filters": {}, "drawDate": "2026-10-27"}.');
+    }
+    if (body.filters !== undefined && !isPlainObject(body.filters)) {
+      return sendError(res, 422, 'INVALID_FILTERS', 'filters must be an object.');
+    }
+    const drawDate = body.drawDate === undefined || body.drawDate === null ? null : body.drawDate;
+    if (drawDate !== null && (typeof drawDate !== 'string' || !isValidIsoDate(drawDate))) {
+      return sendError(res, 422, 'INVALID_DATE', 'drawDate must be a real date in YYYY-MM-DD format.');
+    }
+    const result = await gameService.checkDraw({ slug: req.params.slug, filters: body.filters, drawDate });
+    res.set('Cache-Control', 'no-store');
+    return res.json({ success: true, data: result });
+  });
+
   router.get('/games/:slug/stats', readLimiter, async (req, res) => {
     const stats = await gameService.getStats(req.params.slug);
     res.set('Cache-Control', 'no-store');
@@ -132,6 +151,9 @@ function createApiRouter({ gameService }) {
   router.use((error, req, res, next) => {
     if (error instanceof GameNotFoundError) {
       return sendError(res, 404, 'GAME_NOT_FOUND', error.message);
+    }
+    if (error instanceof DrawNotFoundError) {
+      return sendError(res, 404, 'DRAW_NOT_FOUND', error.message);
     }
     if (error instanceof FilterValidationError) {
       return sendError(res, 422, 'INVALID_FILTERS', 'Some filter settings are not valid.', error.problems);

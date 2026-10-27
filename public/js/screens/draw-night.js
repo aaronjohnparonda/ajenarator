@@ -9,6 +9,10 @@
  *
  * Honest by design: the balls are revealed when the official result arrives (all six at once
  * from PCSO), not ball-by-ball live. The reveal plays once per device; "Replay" shows it again.
+ *
+ * Filter check: after each result, the server checks the official numbers against YOUR saved
+ * filters for that game (as the generator would have that night) and the card says whether
+ * your filters allowed it or blocked it, naming the rule.
  */
 
 import { cloneTemplate, createElement, prefersReducedMotion } from '../ui/dom.js';
@@ -19,6 +23,7 @@ import { vibrate } from '../core/haptics.js';
 import { formatCountdown } from '../lib/draw-schedule.js';
 import { formatDayHeading, formatPeso, formatWinners, pad2 } from '../lib/format.js';
 import { formatManilaTime } from '../lib/pick-format.js';
+import { loadFilters } from '../lib/filters-store.js';
 
 const TICK_MS = 1000;
 const POLL_WHILE_DRAWING_MS = 20 * 1000;
@@ -57,7 +62,54 @@ export function mountDrawNightScreen(root, { api }) {
     revealTimers: [],
     destroyed: false,
     fetching: false,
+    gamesByCode: null, // from GET /games: default filters, needed to read this device's saved filters
   };
+
+  // ---- Filter check: would my filters have allowed tonight's winning numbers? ----
+
+  async function gameDefinitions() {
+    if (!state.gamesByCode) {
+      const games = await api.fetchGames();
+      state.gamesByCode = new Map(games.map((entry) => [entry.code, entry]));
+    }
+    return state.gamesByCode;
+  }
+
+  function showFilterNote(stage, kind, title, detail) {
+    const note = stage.refs.filterNote;
+    note.hidden = false;
+    note.className = `night-stage__filter night-stage__filter--${kind}`;
+    stage.refs.filterTitle.textContent = title;
+    stage.refs.filterDetail.textContent = detail;
+  }
+
+  async function checkFilters(stage, game) {
+    const key = `${game.gameCode}|${game.drawDate}`;
+    if (stage.filterCheckedFor === key) {
+      stage.refs.filterNote.hidden = false;
+      return;
+    }
+    stage.filterCheckedFor = key;
+    try {
+      const definition = (await gameDefinitions()).get(game.gameCode);
+      if (!definition || state.destroyed) {
+        return;
+      }
+      const check = await api.checkDraw(game.gameCode, { filters: loadFilters(definition), drawDate: game.drawDate });
+      if (state.destroyed || stage.revealing) {
+        stage.filterCheckedFor = null; // show it once the reveal finishes
+        return;
+      }
+      if (check.allowed) {
+        showFilterNote(stage, 'allowed', 'Your filters allowed this one', 'This winning combination passes your current filters, so the generator could have picked it.');
+      } else {
+        const rules = check.blockedBy.map((entry) => entry.label).join(' · ');
+        showFilterNote(stage, 'blocked', 'Oh no! Your filters blocked this one', `Blocked by: ${rules}. The generator could not have picked it with your current filters.`);
+      }
+    } catch {
+      stage.filterCheckedFor = null; // quietly try again next time; the result itself is unaffected
+    }
+  }
 
   function revealKey(game) {
     return `${game.gameCode}|${game.drawDate}`;
@@ -140,6 +192,7 @@ export function mountDrawNightScreen(root, { api }) {
     stage.refs.summary.classList.toggle('night-stage__summary--hit', matched.size >= 3);
     stage.refs.replay.hidden = false;
     renderPick(stage, game, matched);
+    checkFilters(stage, game);
   }
 
   function reveal(stage, game) {
@@ -148,6 +201,7 @@ export function mountDrawNightScreen(root, { api }) {
     stage.refs.status.textContent = 'Official numbers are in!';
     stage.refs.countdown.hidden = true;
     stage.refs.replay.hidden = true;
+    stage.refs.filterNote.hidden = true; // revealed again after the last ball
     stage.refs.summary.classList.remove('night-stage__summary--hit');
 
     const step = prefersReducedMotion() ? REVEAL_STEP_REDUCED_MS : REVEAL_STEP_MS;

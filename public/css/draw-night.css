@@ -241,3 +241,53 @@
     animation: none;
   }
 }
+
+/* Filter check after a result: did my filters allow tonight's winning numbers? */
+.night-stage__filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  text-align: center;
+  animation: account-rise 0.4s var(--ease-out);
+}
+
+.night-stage__filter[hidden] {
+  display: none;
+}
+
+.night-stage__filter--blocked {
+  border: 1px solid rgba(232, 131, 106, 0.55);
+  background: rgba(232, 131, 106, 0.12);
+}
+
+.night-stage__filter--allowed {
+  border: 1px solid rgba(242, 214, 118, 0.35);
+  background: rgba(242, 214, 118, 0.08);
+}
+
+.night-stage__filter-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.night-stage__filter--blocked .night-stage__filter-title {
+  color: #F2A48F;
+}
+
+.night-stage__filter--allowed .night-stage__filter-title {
+  color: var(--jackpot-amount);
+}
+
+.night-stage__filter-detail {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--jackpot-label);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .night-stage__filter {
+    animation: none;
+  }
+}

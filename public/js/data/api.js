@@ -144,3 +144,14 @@ export async function markPicksSeen(ids) {
 export async function fetchDrawNight() {
   return request('/draw-night');
 }
+
+/**
+ * Would these filters have allowed an official result? (latest draw when no date)
+ * @returns {{ gameCode, drawDate, numbers, allowed, blockedBy: Array<{ rule, label }> }}
+ */
+export async function checkDraw(gameCode, { filters, drawDate = null } = {}) {
+  return request(`/games/${encodeURIComponent(slugForCode(gameCode))}/check-draw`, {
+    method: 'POST',
+    body: drawDate ? { filters, drawDate } : { filters },
+  });
+}
