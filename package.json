@@ -16,6 +16,7 @@
     "ingest:daily": "node scripts/ingest-daily.js",
     "report:posting": "node scripts/report-posting.js",
     "report:runs": "node scripts/report-runs.js",
+    "prizes:backfill": "node scripts/prizes-backfill.js",
     "analyze:patterns": "node scripts/analyze-patterns.js",
     "analyze:new-rules": "node scripts/analyze-new-rules.js",
     "generate": "node scripts/generate.js",

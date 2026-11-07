@@ -110,6 +110,7 @@ function createDrawNightService({
               numbers: draw.numbers,
               jackpotAmount: draw.jackpotAmount,
               winners: draw.winners,
+              prizes: draw.prizes || null,
             } : null,
             pick: pick ? { numbers: pick.numbers } : null,
           };

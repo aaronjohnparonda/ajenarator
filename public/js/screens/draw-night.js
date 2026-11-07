@@ -24,6 +24,7 @@ import { formatCountdown } from '../lib/draw-schedule.js';
 import { formatDayHeading, formatPeso, formatWinners, pad2 } from '../lib/format.js';
 import { formatManilaTime } from '../lib/pick-format.js';
 import { loadFilters } from '../lib/filters-store.js';
+import { prizeBreakdownList } from '../lib/prize-format.js';
 
 const TICK_MS = 1000;
 const POLL_WHILE_DRAWING_MS = 20 * 1000;
@@ -153,6 +154,7 @@ export function mountDrawNightScreen(root, { api }) {
     stage.refs.balls.replaceChildren(...slots('night-ball--empty', ''));
     stage.refs.summary.textContent = '';
     stage.refs.replay.hidden = true;
+    renderPrizes(stage, game, 0);
     renderPick(stage, game);
   }
 
@@ -166,6 +168,7 @@ export function mountDrawNightScreen(root, { api }) {
     }
     stage.refs.summary.textContent = 'Balls appear here the moment the official numbers are in.';
     stage.refs.replay.hidden = true;
+    renderPrizes(stage, game, 0);
     renderPick(stage, game);
   }
 
@@ -176,6 +179,18 @@ export function mountDrawNightScreen(root, { api }) {
       return `${matchCount} of 6 matched · ${prize}${winners}`;
     }
     return `${prize}${winners}`;
+  }
+
+  /** The 5/4/3-number breakdown under a result (once it is known); hidden otherwise. */
+  function renderPrizes(stage, game, matchCount) {
+    const prizes = game.result && game.result.prizes;
+    if (!prizes) {
+      stage.refs.prizes.replaceChildren();
+      stage.refs.prizes.hidden = true;
+      return;
+    }
+    stage.refs.prizes.replaceChildren(prizeBreakdownList(prizes, { highlight: game.pick ? matchCount : null }));
+    stage.refs.prizes.hidden = false;
   }
 
   function renderResultStatic(stage, game) {
@@ -190,6 +205,7 @@ export function mountDrawNightScreen(root, { api }) {
     stage.refs.balls.setAttribute('aria-label', `Winning numbers in draw order: ${game.result.order.join(', ')}`);
     stage.refs.summary.textContent = summaryText(game, matched.size);
     stage.refs.summary.classList.toggle('night-stage__summary--hit', matched.size >= 3);
+    renderPrizes(stage, game, matched.size);
     stage.refs.replay.hidden = false;
     renderPick(stage, game, matched);
     checkFilters(stage, game);
@@ -202,6 +218,7 @@ export function mountDrawNightScreen(root, { api }) {
     stage.refs.countdown.hidden = true;
     stage.refs.replay.hidden = true;
     stage.refs.filterNote.hidden = true; // revealed again after the last ball
+    stage.refs.prizes.hidden = true; // shown again after the last ball
     stage.refs.summary.classList.remove('night-stage__summary--hit');
 
     const step = prefersReducedMotion() ? REVEAL_STEP_REDUCED_MS : REVEAL_STEP_MS;

@@ -12,6 +12,7 @@ const pickRepository = require('../repositories/pick-repository');
 const { GameNotFoundError } = require('./game-service');
 const { nextPickableDraw, manilaMoment } = require('../picks/pick-window');
 const { nowInManila } = require('../utils/ph-time');
+const { prizeStructureFor, centavosToPesoString } = require('../config/prize-structure');
 
 const GAMES_CACHE_MS = 10 * 60 * 1000;
 const PICK_SIZE = 6;
@@ -72,6 +73,33 @@ function matchAgainst(numbers, drawNumbers) {
 }
 
 /**
+ * What a result paid, from the draw's checked prize breakdown.
+ *   null                                   fewer than 3 matched (no prize)
+ *   { status: 'won', amount, winners }     amount each (PHP string), winners on that tier
+ *   { status: 'pending', ... }             4 or 5 matched; the shared amount is not known yet
+ *   { status: 'jackpot', amount: null }    6 matched; the jackpot is shared by its winners
+ * A 3-number win is a fixed amount, so it is known even before the breakdown arrives
+ * (winners stays null until then).
+ */
+function prizeForResult(gameCode, matchCount, drawPrizes) {
+  if (matchCount < 3) {
+    return null;
+  }
+  if (matchCount === 6) {
+    return { status: 'jackpot', amount: null, winners: null };
+  }
+  const tier = drawPrizes ? drawPrizes.find((entry) => entry.matchCount === matchCount) : null;
+  if (tier) {
+    return { status: 'won', amount: tier.prizeEach, winners: tier.winners };
+  }
+  const structure = prizeStructureFor(gameCode);
+  if (matchCount === 3 && structure) {
+    return { status: 'won', amount: centavosToPesoString(structure.match3Prize), winners: null };
+  }
+  return { status: 'pending', amount: null, winners: null };
+}
+
+/**
  * @param {object} options
  * @param {object} options.db - mysql2 promise pool
  * @param {Function} [options.now] - returns the current Date (tests pass a fixed clock)
@@ -97,6 +125,7 @@ function createPickService({ db, now = () => new Date(), picks = pickRepository,
     if (pick.drawNumbers) {
       status = 'result';
       result = matchAgainst(pick.numbers, pick.drawNumbers);
+      result.prize = prizeForResult(game.code, result.matchCount, pick.drawPrizes);
     } else if ((latestDrawDates.get(pick.gameId) || '') > pick.drawDate) {
       status = 'no_draw'; // a later draw exists, so this one was not held (holiday, suspension)
     } else if (currentTime < manilaMoment(pick.drawDate, game.drawTime)) {
@@ -287,4 +316,5 @@ module.exports = {
   PickClosedError,
   PickExistsError,
   validateNumbers,
+  prizeForResult,
 };

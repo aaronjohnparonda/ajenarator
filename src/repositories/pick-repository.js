@@ -4,14 +4,19 @@
  * Reads and writes the picks table. Every query is filtered by user_id, so one account can
  * never read or change another account's picks (even with a guessed pick ID).
  * Results come from a LEFT JOIN on draws: d_n1 is NULL until the official result is saved.
+ * The prize breakdown comes from a LEFT JOIN on draw_prizes (`dp`): NULL until it is saved.
  */
+
+const { prizeColumns, mapPrizeColumns } = require('./prize-repository');
 
 const PICK_WITH_RESULT_COLUMNS = `
   p.id, p.game_id, p.draw_date, p.n1, p.n2, p.n3, p.n4, p.n5, p.n6, p.source,
   p.created_at, p.result_seen_at,
-  d.n1 AS d_n1, d.n2 AS d_n2, d.n3 AS d_n3, d.n4 AS d_n4, d.n5 AS d_n5, d.n6 AS d_n6`;
+  d.n1 AS d_n1, d.n2 AS d_n2, d.n3 AS d_n3, d.n4 AS d_n4, d.n5 AS d_n5, d.n6 AS d_n6,
+  ${prizeColumns('dp')}`;
 
-const PICK_JOIN = 'FROM picks p LEFT JOIN draws d ON d.game_id = p.game_id AND d.draw_date = p.draw_date';
+const PRIZE_JOIN = 'LEFT JOIN draw_prizes dp ON dp.draw_id = d.id';
+const PICK_JOIN = `FROM picks p LEFT JOIN draws d ON d.game_id = p.game_id AND d.draw_date = p.draw_date ${PRIZE_JOIN}`;
 
 function mapPickRow(row) {
   const hasResult = row.d_n1 !== null && row.d_n1 !== undefined;
@@ -24,6 +29,7 @@ function mapPickRow(row) {
     createdAt: row.created_at,
     resultSeenAt: row.result_seen_at,
     drawNumbers: hasResult ? [row.d_n1, row.d_n2, row.d_n3, row.d_n4, row.d_n5, row.d_n6] : null,
+    drawPrizes: hasResult ? mapPrizeColumns(row) : null,
   };
 }
 
@@ -102,7 +108,7 @@ async function loadSettledPicks(db, userId, { gameId = null } = {}) {
   const gameFilter = gameId === null ? '' : ' AND p.game_id = ?';
   const [rows] = await db.query(
     `SELECT ${PICK_WITH_RESULT_COLUMNS}
-     FROM picks p JOIN draws d ON d.game_id = p.game_id AND d.draw_date = p.draw_date
+     FROM picks p JOIN draws d ON d.game_id = p.game_id AND d.draw_date = p.draw_date ${PRIZE_JOIN}
      WHERE p.user_id = ?${gameFilter}
      ORDER BY p.draw_date DESC, p.game_id ASC`,
     gameId === null ? [userId] : [userId, gameId],

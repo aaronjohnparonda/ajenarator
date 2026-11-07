@@ -1,0 +1,64 @@
+/* 5/4/3-number prize breakdown (Results rows, Draw Night stages). Uses the shared tokens only. */
+
+.prize-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  column-gap: 12px;
+  row-gap: 4px;
+  margin: 0;
+  padding: 8px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border-soft);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* Rows share the list's columns (subgrid), so winners and amounts line up across rows. */
+.prize-list__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+}
+
+.prize-list__tier {
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.prize-list__winners {
+  text-align: right;
+}
+
+.prize-list__amount {
+  text-align: right;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.prize-list__row--yours .prize-list__tier,
+.prize-list__row--yours .prize-list__amount {
+  color: var(--gold-text);
+}
+
+/* Draw Night stages are always dark */
+.night-stage .prize-list {
+  width: 100%;
+  border-top-color: rgba(255, 255, 255, 0.08);
+  color: #A9B0C2;
+}
+
+.night-stage .prize-list__tier,
+.night-stage .prize-list__amount {
+  color: #C9CEDA;
+}
+
+.night-stage .prize-list__row--yours .prize-list__tier,
+.night-stage .prize-list__row--yours .prize-list__amount {
+  color: var(--jackpot-amount);
+}
+
+.prize-list[hidden] {
+  display: none;
+}

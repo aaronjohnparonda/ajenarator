@@ -10,6 +10,7 @@ import { manilaNow } from '../lib/ph-time.js';
 import {
   formatNumber, formatPeso, formatDrawDateLong, formatWinners, pad2,
 } from '../lib/format.js';
+import { prizeBreakdownList } from '../lib/prize-format.js';
 
 const PAGE_SIZE = 20;
 
@@ -21,6 +22,10 @@ function buildDrawRow(draw) {
   refs.balls.setAttribute('aria-label', `Winning numbers: ${draw.numbers.join(', ')}`);
   refs.winners.textContent = formatWinners(draw.winners);
   refs.order.textContent = `Drawn as ${draw.drawOrder}`;
+  if (draw.prizes) {
+    refs.prizes.replaceChildren(prizeBreakdownList(draw.prizes));
+    refs.prizes.hidden = false;
+  }
   return fragment;
 }
 

@@ -16,6 +16,10 @@
  *   - Outside the evening window the database check itself runs hourly.
  *   - After a failure it waits 30 minutes before trying PCSO again.
  *
+ * After the PCSO step, each tick also lets the prize fetcher fill in missing 5/4/3-number prize
+ * breakdowns (see prize-fetcher.js; it has its own, slower timetable and costs nothing when
+ * every saved draw already has one). A prize problem never delays or blocks the PCSO results.
+ *
  * Turned on with AUTO_FETCH_RESULTS=true (set it on Render; leave it off on a laptop).
  */
 
@@ -62,6 +66,7 @@ function nextDelayMs(now) {
  * @param {Function} [options.loadGames]
  * @param {Function} [options.now] - returns the current Date
  * @param {Function} [options.log]
+ * @param {object|null} [options.prizeFetcher] - from createPrizeFetcher(); null to skip prizes
  * @param {Function} [options.setTimer] / [options.clearTimer] - tests pass fakes
  */
 function createResultWatcher({
@@ -71,6 +76,7 @@ function createResultWatcher({
   loadGames = loadActiveGames,
   now = () => new Date(),
   log = (message) => console.log(`[results] ${message}`),
+  prizeFetcher = null,
   setTimer = (callback, delay) => setTimeout(callback, delay).unref(),
   clearTimer = (timer) => clearTimeout(timer),
 } = {}) {
@@ -108,6 +114,44 @@ function createResultWatcher({
     return false;
   }
 
+  /** Asks PCSO for missing results when due. Returns the delay before the next tick. */
+  async function checkResults() {
+    try {
+      if (!(await shouldContactPcso())) {
+        return nextDelayMs(now());
+      }
+      const result = await runIngest({
+        pool,
+        client: createClient(),
+        runType: 'daily',
+        triggerSource: 'server',
+        planner: createDailyPlanner(),
+        now: now(),
+      });
+      log(`checked PCSO: ${result.inserted} new result(s), status ${result.status}`);
+      return result.status === 'failed' ? FAILURE_BACKOFF_MS : nextDelayMs(now());
+    } catch (error) {
+      if (error instanceof IngestBusyError) {
+        log('another check (GitHub Actions) is running; will try again later');
+        return nextDelayMs(now());
+      }
+      log(`check failed: ${error.code || ''} ${error.message}`.trim());
+      return FAILURE_BACKOFF_MS;
+    }
+  }
+
+  /** Fills in missing prize breakdowns; never affects the PCSO timetable. */
+  async function checkPrizes() {
+    if (!prizeFetcher || stopped) {
+      return;
+    }
+    try {
+      await prizeFetcher.run();
+    } catch (error) {
+      log(`prize check failed: ${error.code || ''} ${error.message}`.trim());
+    }
+  }
+
   async function tick() {
     timer = null;
     if (running || stopped) {
@@ -116,27 +160,8 @@ function createResultWatcher({
     running = true;
     let delay = nextDelayMs(now());
     try {
-      if (await shouldContactPcso()) {
-        const result = await runIngest({
-          pool,
-          client: createClient(),
-          runType: 'daily',
-          triggerSource: 'server',
-          planner: createDailyPlanner(),
-          now: now(),
-        });
-        log(`checked PCSO: ${result.inserted} new result(s), status ${result.status}`);
-        if (result.status === 'failed') {
-          delay = FAILURE_BACKOFF_MS;
-        }
-      }
-    } catch (error) {
-      if (error instanceof IngestBusyError) {
-        log('another check (GitHub Actions) is running; will try again later');
-      } else {
-        log(`check failed: ${error.code || ''} ${error.message}`.trim());
-        delay = FAILURE_BACKOFF_MS;
-      }
+      delay = await checkResults();
+      await checkPrizes();
     } finally {
       running = false;
       schedule(delay);

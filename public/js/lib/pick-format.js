@@ -2,6 +2,7 @@
 
 import { createElement } from '../ui/dom.js';
 import { pad2, formatDrawDate } from './format.js';
+import { prizeText } from './prize-format.js';
 
 const manilaTime = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' });
 
@@ -30,8 +31,10 @@ export function pickBalls(numbers, matched = null) {
 /** One line describing where a saved pick stands. */
 export function pickStatusText(pick) {
   switch (pick.status) {
-    case 'result':
-      return `${pick.result.matchCount} of 6 matched`;
+    case 'result': {
+      const won = prizeText(pick.result.prize);
+      return won ? `${pick.result.matchCount} of 6 matched · ${won}` : `${pick.result.matchCount} of 6 matched`;
+    }
     case 'waiting':
       return 'Drawn. Waiting for the official result';
     case 'no_draw':

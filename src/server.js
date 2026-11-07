@@ -17,6 +17,7 @@ const { createPickService } = require('./services/pick-service');
 const { createDrawNightService } = require('./services/draw-night-service');
 const config = require('./config/env');
 const { createResultWatcher } = require('./ingest/result-watcher');
+const { createPrizeFetcher } = require('./ingest/prize-fetcher');
 
 const DEFAULT_PORT = 3000;
 const SHUTDOWN_TIMEOUT_MS = 10000;
@@ -45,8 +46,11 @@ const server = app.listen(port, () => {
   console.log(`AJenarator is running at http://localhost:${port}`);
 });
 
-// Server-side results check (GitHub Actions remains the backup).
-const resultWatcher = config.hosting.autoFetchResults ? createResultWatcher({ pool }) : null;
+// Server-side results check (GitHub Actions remains the backup), followed by the 5/4/3-number
+// prize breakdown for any saved draw that does not have one yet.
+const resultWatcher = config.hosting.autoFetchResults
+  ? createResultWatcher({ pool, prizeFetcher: createPrizeFetcher({ pool }) })
+  : null;
 if (resultWatcher) {
   resultWatcher.start();
 }

@@ -193,7 +193,13 @@ async function loadPastWinnerKeys(db, gameId) {
   return new Set(rows.map((row) => row.combination));
 }
 
-const FULL_DRAW_COLUMNS = 'draw_date, n1, n2, n3, n4, n5, n6, draw_order, jackpot_amount, winners';
+const { prizeColumns, mapPrizeColumns } = require('./prize-repository');
+
+// Every "full draw" query reads draws as `d` with the prize breakdown LEFT JOINed as `p`
+// (one row per draw at most, so the join never multiplies rows).
+const FULL_DRAW_COLUMNS = `d.game_id, d.draw_date, d.n1, d.n2, d.n3, d.n4, d.n5, d.n6, d.draw_order,
+  d.jackpot_amount, d.winners, ${prizeColumns('p')}`;
+const FULL_DRAW_FROM = 'FROM draws d LEFT JOIN draw_prizes p ON p.draw_id = d.id';
 
 /** One database row -> the draw shape the API returns. */
 function mapFullDrawRow(row) {
@@ -203,16 +209,17 @@ function mapFullDrawRow(row) {
     drawOrder: row.draw_order,
     jackpotAmount: row.jackpot_amount,
     winners: row.winners,
+    prizes: mapPrizeColumns(row), // [{ matchCount: 5, winners, prizeEach }, 4, 3] or null
   };
 }
 
 /**
- * The most recent draws of one game, newest first, with jackpot and winners.
- * @returns {Promise<Array<{ drawDate, numbers, drawOrder, jackpotAmount, winners }>>}
+ * The most recent draws of one game, newest first, with jackpot, winners and prize breakdown.
+ * @returns {Promise<Array<{ drawDate, numbers, drawOrder, jackpotAmount, winners, prizes }>>}
  */
 async function loadLatestDraws(db, gameId, limit) {
   const [rows] = await db.query(
-    `SELECT ${FULL_DRAW_COLUMNS} FROM draws WHERE game_id = ? ORDER BY draw_date DESC LIMIT ?`,
+    `SELECT ${FULL_DRAW_COLUMNS} ${FULL_DRAW_FROM} WHERE d.game_id = ? ORDER BY d.draw_date DESC LIMIT ?`,
     [gameId, limit],
   );
   return rows.map(mapFullDrawRow);
@@ -220,12 +227,12 @@ async function loadLatestDraws(db, gameId, limit) {
 
 /**
  * The most recent draw of EVERY game in one query (uses the game_id + draw_date unique index).
- * @returns {Promise<Map<number, { drawDate, numbers, drawOrder, jackpotAmount, winners }>>} keyed by game id
+ * @returns {Promise<Map<number, object>>} keyed by game id
  */
 async function loadLatestDrawPerGame(db) {
   const [rows] = await db.query(`
-    SELECT d.game_id, d.draw_date, d.n1, d.n2, d.n3, d.n4, d.n5, d.n6, d.draw_order, d.jackpot_amount, d.winners
-    FROM draws d
+    SELECT ${FULL_DRAW_COLUMNS}
+    ${FULL_DRAW_FROM}
     JOIN (SELECT game_id, MAX(draw_date) AS latest_date FROM draws GROUP BY game_id) latest
       ON latest.game_id = d.game_id AND latest.latest_date = d.draw_date
   `);
@@ -243,11 +250,11 @@ async function loadLatestDrawDate(db, gameId) {
  * @returns {Promise<{ total: number, draws: Array }>}
  */
 async function loadDrawsPage(db, gameId, { limit, offset, toDate = null }) {
-  const where = toDate ? 'WHERE game_id = ? AND draw_date <= ?' : 'WHERE game_id = ?';
+  const where = toDate ? 'WHERE d.game_id = ? AND d.draw_date <= ?' : 'WHERE d.game_id = ?';
   const params = toDate ? [gameId, toDate] : [gameId];
-  const [[countRow]] = await db.query(`SELECT COUNT(*) AS total FROM draws ${where}`, params);
+  const [[countRow]] = await db.query(`SELECT COUNT(*) AS total FROM draws d ${where}`, params);
   const [rows] = await db.query(
-    `SELECT ${FULL_DRAW_COLUMNS} FROM draws ${where} ORDER BY draw_date DESC LIMIT ? OFFSET ?`,
+    `SELECT ${FULL_DRAW_COLUMNS} ${FULL_DRAW_FROM} ${where} ORDER BY d.draw_date DESC LIMIT ? OFFSET ?`,
     [...params, limit, offset],
   );
   return { total: Number(countRow.total), draws: rows.map(mapFullDrawRow) };
@@ -259,7 +266,7 @@ async function loadDrawsPage(db, gameId, { limit, offset, toDate = null }) {
  */
 async function loadDrawsOnDate(db, drawDate) {
   const [rows] = await db.query(
-    `SELECT game_id, ${FULL_DRAW_COLUMNS} FROM draws WHERE draw_date = ?`,
+    `SELECT ${FULL_DRAW_COLUMNS} ${FULL_DRAW_FROM} WHERE d.draw_date = ?`,
     [drawDate],
   );
   return new Map(rows.map((row) => [row.game_id, mapFullDrawRow(row)]));
