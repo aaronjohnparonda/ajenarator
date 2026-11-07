@@ -7,6 +7,7 @@
 import { cloneTemplate, createElement } from './dom.js';
 import { defaultFiltersFor } from '../lib/filters-store.js';
 import { formatNumber, formatPercent, pad2 } from '../lib/format.js';
+import { applySlipLayout } from '../lib/slip-layout.js';
 
 const MAX_INCLUDED = 5;
 const MIN_POSSIBLE_SUM = 21;
@@ -77,6 +78,7 @@ export function openFilterSheet({ game, settings, api, opener, onApply }) {
     numberButtons.push(button);
   }
   refs.numberGrid.replaceChildren(...numberButtons);
+  applySlipLayout(refs.numberGrid, game.maxNumber);
 
   function numberState(number) {
     if (draft.includeNumbers.includes(number)) {

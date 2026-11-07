@@ -50,3 +50,34 @@
     grid-template-columns: repeat(8, minmax(0, 1fr));
   }
 }
+
+/* Bet-slip layout (see public/js/lib/slip-layout.js): 9 per row for 6/42-6/49,
+   10 per column (top to bottom) for 6/55 and 6/58. Cells stay round and at most 44px. */
+.number-picker--slip,
+.number-picker--slip[data-flow] {
+  grid-template-columns: repeat(var(--slip-columns), minmax(0, 44px));
+  justify-content: center;
+  gap: 5px;
+}
+
+.number-picker--slip[data-flow="column"] {
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--slip-rows), auto);
+}
+
+.number-picker--slip .number-chip {
+  min-height: 0;
+  font-size: 13px;
+}
+
+/* Very narrow phones: tighter gaps keep 9-across cells at a tappable size */
+@media (max-width: 360px) {
+  .number-picker--slip,
+  .number-picker--slip[data-flow] {
+    gap: 3px;
+  }
+
+  .number-picker--slip .number-chip {
+    font-size: 12px;
+  }
+}

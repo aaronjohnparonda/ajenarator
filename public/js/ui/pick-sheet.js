@@ -13,6 +13,7 @@ import { pad2, formatDrawDate } from '../lib/format.js';
 import { formatManilaTime } from '../lib/pick-format.js';
 import { playChime } from '../core/sound.js';
 import { vibrate } from '../core/haptics.js';
+import { applySlipLayout } from '../lib/slip-layout.js';
 
 const PICK_SIZE = 6;
 
@@ -49,6 +50,7 @@ export function openPickSheet({ target, numbers, source, api, opener, onSaved, o
       buttons.push(button);
     }
     refs.grid.replaceChildren(...buttons);
+    applySlipLayout(refs.grid, target.maxNumber);
   }
 
   function sortedChoice() {
