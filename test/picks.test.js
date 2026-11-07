@@ -73,16 +73,19 @@ function createMemoryRepository() {
     async loadPicksFromDate(db, userId, fromDate) {
       return rows.filter((row) => row.userId === userId && row.drawDate >= fromDate).map(withResult);
     },
-    async loadPickHistory(db, userId, { limit, offset }) {
-      const mine = rows.filter((row) => row.userId === userId)
+    async loadPickHistory(db, userId, { limit, offset, gameId = null, matchesOnly = false }) {
+      const mine = rows.filter((row) => row.userId === userId && (gameId === null || row.gameId === gameId))
+        .map(withResult)
+        .filter((row) => !matchesOnly || (row.drawNumbers && row.numbers.some((n) => row.drawNumbers.includes(n))))
         .sort((a, b) => b.drawDate.localeCompare(a.drawDate) || a.gameId - b.gameId);
-      return { total: mine.length, picks: mine.slice(offset, offset + limit).map(withResult) };
+      return { total: mine.length, picks: mine.slice(offset, offset + limit) };
     },
-    async loadSettledPicks(db, userId) {
-      return rows.filter((row) => row.userId === userId).map(withResult).filter((row) => row.drawNumbers);
+    async loadSettledPicks(db, userId, { gameId = null } = {}) {
+      return rows.filter((row) => row.userId === userId && (gameId === null || row.gameId === gameId))
+        .map(withResult).filter((row) => row.drawNumbers);
     },
-    async countPicks(db, userId) {
-      return rows.filter((row) => row.userId === userId).length;
+    async countPicks(db, userId, { gameId = null } = {}) {
+      return rows.filter((row) => row.userId === userId && (gameId === null || row.gameId === gameId)).length;
     },
     async markResultsSeen(db, userId, ids) {
       let count = 0;
@@ -276,4 +279,44 @@ test('picks API requires sign-in and enforces the rules over HTTP', async (t) =>
 
   response = await call('/picks/seen', { method: 'POST', body: { ids: 'all' } });
   assert.equal(response.status, 422);
+});
+
+test('history and record can be limited to one game or to picks with matches', async () => {
+  const clock = { now: at('2026-10-27T10:00:00+08:00') };
+  const { service, repository } = makeService(clock);
+  await service.createPick(7, { gameCode: '6/42', drawDate: '2026-10-27', numbers: [3, 7, 18, 22, 31, 40], source: 'manual' });
+  await service.createPick(7, { gameCode: '6/45', drawDate: '2026-10-28', numbers: [1, 2, 3, 4, 5, 6], source: 'manual' });
+  repository.draws.set('1|2026-10-27', [3, 9, 18, 25, 33, 41]); // 6/42 pick matches 3 and 18
+  repository.draws.set('2|2026-10-28', [10, 11, 12, 13, 14, 15]); // 6/45 pick matches nothing
+  clock.now = at('2026-10-29T08:00:00+08:00');
+
+  let history = await service.listHistory(7, { page: 1, limit: 20, gameCode: '6/45' });
+  assert.deepEqual(history.picks.map((pick) => pick.gameCode), ['6/45']);
+
+  history = await service.listHistory(7, { page: 1, limit: 20, matchesOnly: true });
+  assert.deepEqual(history.picks.map((pick) => [pick.gameCode, pick.result.matchCount]), [['6/42', 2]]);
+  assert.equal(history.total, 1);
+
+  const record645 = await service.getSummary(7, { gameCode: '6/45' });
+  assert.equal(record645.record.totalPicks, 1);
+  assert.equal(record645.record.bestMatch, 0);
+
+  await assert.rejects(service.listHistory(7, { page: 1, limit: 20, gameCode: '6/99' }), { name: 'GameNotFoundError' });
+});
+
+test('history filters are validated over HTTP', async (t) => {
+  const { server, baseUrl, cookie } = await startServer();
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const get = (path) => fetch(`${baseUrl}${path}`, { headers: { Cookie: cookie } });
+
+  let response = await get('/picks?game=6-42&matches=1');
+  assert.equal(response.status, 200);
+  response = await get('/picks?game=642');
+  assert.equal((await response.json()).error.code, 'INVALID_GAME');
+  response = await get('/picks?matches=yes');
+  assert.equal((await response.json()).error.code, 'INVALID_MATCHES');
+  response = await get('/picks?game=6-99');
+  assert.equal(response.status, 404);
+  response = await get('/picks/summary?game=6-45');
+  assert.equal(response.status, 200);
 });

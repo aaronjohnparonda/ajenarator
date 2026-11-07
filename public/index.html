@@ -446,9 +446,12 @@
           <div class="upcoming-list" data-ref="upcoming"></div>
         </section>
 
+        <div class="history-tabs" role="tablist" aria-label="Show records for" data-ref="historyTabs"></div>
+
         <section class="panel">
           <div class="panel__header">
             <h2 class="panel__title">Your record</h2>
+            <p class="panel__caption" data-ref="recordScope">All games</p>
           </div>
           <div class="metric-row">
             <div class="metric-card">
@@ -472,8 +475,9 @@
         <section class="panel">
           <div class="panel__header">
             <h2 class="panel__title">History</h2>
+            <p class="panel__caption" data-ref="historyScope">All games, newest first</p>
           </div>
-          <p class="panel__note" data-ref="historyEmpty" hidden>No picks yet. Lock in your first one above.</p>
+          <p class="panel__note" data-ref="historyEmpty" hidden></p>
           <div class="pick-history" data-ref="history"></div>
           <button class="secondary-button load-more" type="button" data-ref="more" hidden>Load more</button>
         </section>

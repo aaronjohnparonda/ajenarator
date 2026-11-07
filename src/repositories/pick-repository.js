@@ -58,15 +58,38 @@ async function loadPicksFromDate(db, userId, fromDate) {
   return rows.map(mapPickRow);
 }
 
-/** One page of the user's picks, newest draw first. */
-async function loadPickHistory(db, userId, { limit, offset }) {
-  const [[countRow]] = await db.execute('SELECT COUNT(*) AS total FROM picks WHERE user_id = ?', [userId]);
+/** How many of the pick's numbers are among the drawn numbers (NULL until the result is saved). */
+const MATCH_COUNT = ['p.n1', 'p.n2', 'p.n3', 'p.n4', 'p.n5', 'p.n6']
+  .map((column) => `(${column} IN (d.n1, d.n2, d.n3, d.n4, d.n5, d.n6))`)
+  .join(' + ');
+
+/** WHERE clause + params for the history filters. Only fixed SQL text; values go in params. */
+function historyFilter(userId, { gameId = null, matchesOnly = false } = {}) {
+  const conditions = ['p.user_id = ?'];
+  const params = [userId];
+  if (gameId !== null) {
+    conditions.push('p.game_id = ?');
+    params.push(gameId);
+  }
+  if (matchesOnly) {
+    conditions.push(`d.n1 IS NOT NULL AND (${MATCH_COUNT}) >= 1`);
+  }
+  return { where: conditions.join(' AND '), params };
+}
+
+/**
+ * One page of the user's picks, newest draw first.
+ * @param {object} options - limit, offset, gameId (one game only), matchesOnly (1+ number matched)
+ */
+async function loadPickHistory(db, userId, { limit, offset, gameId = null, matchesOnly = false }) {
+  const { where, params } = historyFilter(userId, { gameId, matchesOnly });
+  const [[countRow]] = await db.query(`SELECT COUNT(*) AS total ${PICK_JOIN} WHERE ${where}`, params);
   const [rows] = await db.query(
     `SELECT ${PICK_WITH_RESULT_COLUMNS} ${PICK_JOIN}
-     WHERE p.user_id = ?
+     WHERE ${where}
      ORDER BY p.draw_date DESC, p.game_id ASC
      LIMIT ? OFFSET ?`,
-    [userId, limit, offset],
+    [...params, limit, offset],
   );
   return { total: Number(countRow.total), picks: rows.map(mapPickRow) };
 }
@@ -75,19 +98,22 @@ async function loadPickHistory(db, userId, { limit, offset }) {
  * Every pick that already has an official result (for the personal record and pop-up).
  * Small by nature: at most one pick per game per draw.
  */
-async function loadSettledPicks(db, userId) {
-  const [rows] = await db.execute(
+async function loadSettledPicks(db, userId, { gameId = null } = {}) {
+  const gameFilter = gameId === null ? '' : ' AND p.game_id = ?';
+  const [rows] = await db.query(
     `SELECT ${PICK_WITH_RESULT_COLUMNS}
      FROM picks p JOIN draws d ON d.game_id = p.game_id AND d.draw_date = p.draw_date
-     WHERE p.user_id = ?
+     WHERE p.user_id = ?${gameFilter}
      ORDER BY p.draw_date DESC, p.game_id ASC`,
-    [userId],
+    gameId === null ? [userId] : [userId, gameId],
   );
   return rows.map(mapPickRow);
 }
 
-async function countPicks(db, userId) {
-  const [[row]] = await db.execute('SELECT COUNT(*) AS total FROM picks WHERE user_id = ?', [userId]);
+async function countPicks(db, userId, { gameId = null } = {}) {
+  const [[row]] = gameId === null
+    ? await db.query('SELECT COUNT(*) AS total FROM picks WHERE user_id = ?', [userId])
+    : await db.query('SELECT COUNT(*) AS total FROM picks WHERE user_id = ? AND game_id = ?', [userId, gameId]);
   return Number(row.total);
 }
 

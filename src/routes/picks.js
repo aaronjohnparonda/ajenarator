@@ -4,8 +4,9 @@
  * My Picks API (owner only; all under /api/v1/picks):
  *   GET  /picks/upcoming   next pickable draw per game, with the saved pick (if any)
  *   POST /picks            body { gameCode, drawDate, numbers: [6], source: "generator"|"manual" }
- *   GET  /picks            ?page=1&limit=20 history with results, newest first
- *   GET  /picks/summary    personal record + results not yet shown
+ *   GET  /picks            ?page=1&limit=20&game=6-42&matches=1 history with results, newest first
+ *                          (game: one game only; matches=1: only picks with 1+ matching number)
+ *   GET  /picks/summary    ?game=6-42  personal record (one game or all) + results not yet shown
  *   POST /picks/seen       body { ids: [pickId, ...] } - dismisses results from the pop-up
  *
  * The user always comes from the session cookie, never from the request body.
@@ -24,6 +25,15 @@ const HISTORY_DEFAULT_LIMIT = 20;
 const HISTORY_MAX_LIMIT = 50;
 const HISTORY_MAX_PAGE = 1000;
 const WHOLE_NUMBER_PATTERN = /^\d{1,4}$/;
+const GAME_SLUG_PATTERN = /^6-\d{2}$/;
+
+/** "?game=6-42" -> "6/42"; undefined -> null; anything malformed -> false. */
+function readGame(value) {
+  if (value === undefined || value === '') {
+    return null;
+  }
+  return typeof value === 'string' && GAME_SLUG_PATTERN.test(value) ? value.replace('-', '/') : false;
+}
 
 function sendError(res, status, code, message, details) {
   const error = { code, message };
@@ -91,7 +101,15 @@ function createPicksRouter({ pickService }) {
   });
 
   router.get('/summary', readLimiter, async (req, res) => {
-    res.json({ success: true, data: await pickService.getSummary(req.user.id) });
+    const gameCode = readGame(req.query.game);
+    if (gameCode === false) {
+      return sendError(res, 422, 'INVALID_GAME', 'game must look like 6-42.');
+    }
+    try {
+      return res.json({ success: true, data: await pickService.getSummary(req.user.id, { gameCode }) });
+    } catch (error) {
+      return handlePickError(res, error);
+    }
   });
 
   router.get('/', readLimiter, async (req, res) => {
@@ -103,7 +121,20 @@ function createPicksRouter({ pickService }) {
     if (limit === null) {
       return sendError(res, 422, 'INVALID_LIMIT', `limit must be a whole number from 1 to ${HISTORY_MAX_LIMIT}.`);
     }
-    return res.json({ success: true, data: await pickService.listHistory(req.user.id, { page, limit }) });
+    const gameCode = readGame(req.query.game);
+    if (gameCode === false) {
+      return sendError(res, 422, 'INVALID_GAME', 'game must look like 6-42.');
+    }
+    const matches = req.query.matches;
+    if (matches !== undefined && matches !== '1' && matches !== '0') {
+      return sendError(res, 422, 'INVALID_MATCHES', 'matches must be 1 (only picks with matching numbers) or 0.');
+    }
+    try {
+      const data = await pickService.listHistory(req.user.id, { page, limit, gameCode, matchesOnly: matches === '1' });
+      return res.json({ success: true, data });
+    } catch (error) {
+      return handlePickError(res, error);
+    }
   });
 
   router.post('/', writeLimiter, async (req, res) => {

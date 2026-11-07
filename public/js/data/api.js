@@ -126,13 +126,20 @@ export async function savePick({ gameCode, drawDate, numbers, source }) {
 }
 
 /** One page of pick history with results, newest first. */
-export async function fetchPickHistory({ page = 1, limit = 10 } = {}) {
-  return request(`/picks?${new URLSearchParams({ page: String(page), limit: String(limit) })}`);
+export async function fetchPickHistory({ page = 1, limit = 10, gameCode = null, matchesOnly = false } = {}) {
+  const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (gameCode) {
+    query.set('game', slugForCode(gameCode));
+  }
+  if (matchesOnly) {
+    query.set('matches', '1');
+  }
+  return request(`/picks?${query}`);
 }
 
-/** { record, unseen } - personal record and results not shown yet. */
-export async function fetchPickSummary() {
-  return request('/picks/summary');
+/** { record, unseen } - personal record (one game, or all when no gameCode) and results not shown yet. */
+export async function fetchPickSummary({ gameCode = null } = {}) {
+  return request(gameCode ? `/picks/summary?game=${encodeURIComponent(slugForCode(gameCode))}` : '/picks/summary');
 }
 
 /** Dismisses results from the pop-up. */

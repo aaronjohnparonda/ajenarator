@@ -117,6 +117,18 @@ function createPickService({ db, now = () => new Date(), picks = pickRepository,
     };
   }
 
+  /** "6/42" -> its database id; null for all games. */
+  async function gameIdFor(gameCode) {
+    if (gameCode === null || gameCode === undefined) {
+      return null;
+    }
+    const game = (await getGames()).find((entry) => entry.code === gameCode);
+    if (!game) {
+      throw new GameNotFoundError(String(gameCode));
+    }
+    return game.id;
+  }
+
   async function describeMany(rawPicks) {
     if (rawPicks.length === 0) {
       return [];
@@ -206,9 +218,17 @@ function createPickService({ db, now = () => new Date(), picks = pickRepository,
       return described;
     },
 
-    /** One page of history with results, newest first. */
-    async listHistory(userId, { page, limit }) {
-      const { total, picks: rows } = await picks.loadPickHistory(db, userId, { limit, offset: (page - 1) * limit });
+    /**
+     * One page of history with results, newest first.
+     * @param {object} options - page, limit, gameCode ("6/42"; omit for all games),
+     *   matchesOnly (only picks that matched at least 1 drawn number)
+     * @throws GameNotFoundError for an unknown gameCode
+     */
+    async listHistory(userId, { page, limit, gameCode = null, matchesOnly = false }) {
+      const gameId = await gameIdFor(gameCode);
+      const { total, picks: rows } = await picks.loadPickHistory(db, userId, {
+        limit, offset: (page - 1) * limit, gameId, matchesOnly,
+      });
       return {
         page,
         limit,
@@ -218,11 +238,15 @@ function createPickService({ db, now = () => new Date(), picks = pickRepository,
       };
     },
 
-    /** Personal record plus results not yet shown in the pop-up. */
-    async getSummary(userId) {
+    /**
+     * Personal record plus results not yet shown in the pop-up.
+     * @param {object} [options] - gameCode: the record for one game only (omit for all games)
+     */
+    async getSummary(userId, { gameCode = null } = {}) {
+      const gameId = await gameIdFor(gameCode);
       const [settledRows, totalPicks] = await Promise.all([
-        picks.loadSettledPicks(db, userId),
-        picks.countPicks(db, userId),
+        picks.loadSettledPicks(db, userId, { gameId }),
+        picks.countPicks(db, userId, { gameId }),
       ]);
       const settled = await describeMany(settledRows);
 
